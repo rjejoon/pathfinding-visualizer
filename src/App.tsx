@@ -1,26 +1,59 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useState, useEffect } from 'react';
+import Navbar from './components/Navbar';
+import Grid from './components/Grid';
+
+
+interface Size {
+  width: number | undefined;
+  height: number | undefined;
+}
 
 function App() {
+  const windowSize = useWindowSize();
+  const navbarHeight = 70;
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <Navbar height={navbarHeight} />
+      {windowSize.height &&
+        windowSize.width &&
+        <Grid size={{
+          width: windowSize.width,
+          height: windowSize.height - navbarHeight
+        }} />}
+    </>
   );
+}
+
+
+function useWindowSize(): Size {
+  // Initialize state with undefined width/height so server and client renders match
+  const [windowSize, setWindowSize] = useState<Size>({
+    width: undefined,
+    height: undefined,
+  });
+
+  useEffect(() => {
+    // Handler to call on window resize
+    function handleResize() {
+      // Set window width/height to state
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    }
+
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+
+    // Call handler right away so state gets updated with initial window size
+    handleResize();
+
+    // Remove event listener on cleanup
+    return () => window.removeEventListener("resize", handleResize);
+  }, []); // Empty array ensures that effect is only run on mount
+
+  return windowSize;
 }
 
 export default App;
