@@ -43,8 +43,15 @@ const Grid: React.FC<{ size: GridSize }> = (props) => {
     setGrid(initGrid(numRow, numCol));
   }, [numRow, numCol]);
 
-  function handleMouseDown(target: Vertex) {
-    console.log(target);
+  /**
+   * Change edit mode depending on which type of vertex the mouse is pointing.
+   * If mouse is down on source vertex, set EditMode to Source.
+   * If mouse is down on destination vertex, set EditMode to Dest.
+   * Otherwise, set EditMode to Wall.
+   * 
+   * @param target - Vertex object at the pointer
+   */
+  function changeEditMode(target: Vertex) {
     if (target.isSource) {
       setEditMode(EditMode.Source);
     } else if (target.isDest) {
@@ -54,21 +61,45 @@ const Grid: React.FC<{ size: GridSize }> = (props) => {
     }
   }
 
-  function handleMouseUp() {
+  function resetEditMode() {
     setEditMode(EditMode.Null);
   }
 
-  function handleMouseMove(target: Vertex) {
-    console.log(target);
+  /**
+   *  
+   * @param target - Vertex object at the pointer
+   */
+  function editGrid(target: Vertex) {
+    setGrid(prevGrid => {
+      return prevGrid.map(row => (row.map(v => {
+
+
+        const newV = new Vertex(v.row, v.col, v.weight, v.isSource, v.isDest, v.isWall);
+
+        // other vertices 
+        if (!(v.row === target.row && v.col === target.col)) {
+          if (editMode === EditMode.Source && v.row) {
+            newV.isSource = false;
+          } else if (editMode === EditMode.Dest) {
+            newV.isDest = false;
+          }
+          return newV;
+        }
+
+        // target vertex
+        if (editMode === EditMode.Wall && !newV.isSource && !newV.isDest) {
+          newV.isWall = true;
+        } else if (editMode === EditMode.Source && !v.isDest) {
+          newV.isSource = true;
+        } else if (editMode === EditMode.Dest) {
+          newV.isDest = true;
+        }
+        return newV;
+
+
+      })));
+    });
     if (editMode === EditMode.Wall) {
-      setGrid(prevGrid => {
-        return prevGrid.map(row => (row.map(v => {
-          if (v.isSource || v.isDest || !(v.row === target.row && v.col === target.col))
-            return v;
-          v.isWall = true;
-          return v;
-        })));
-      });
     }
   }
 
@@ -81,9 +112,9 @@ const Grid: React.FC<{ size: GridSize }> = (props) => {
         vert={v}
         $width={w}
         $height={h}
-        handleMouseDown={() => handleMouseDown(v)}
-        handleMouseUp={handleMouseUp}
-        handleMouseMove={() => handleMouseMove(v)}
+        handleMouseDown={() => changeEditMode(v)}
+        handleMouseUp={resetEditMode}
+        handleMouseMove={() => editGrid(v)}
       />
     ));
     cells.push(<Row key={`row_${i}`} $height={h} >{children}</Row>);
@@ -97,6 +128,14 @@ const Grid: React.FC<{ size: GridSize }> = (props) => {
   );
 };
 
+/**
+ * Creates numRow x numCol grid initialized with Vertex objects.
+ * Source and destination vertices are initialized here.
+ * 
+ * @param numRow - number of rows in grid
+ * @param numCol - number of cols in grid
+ * @returns 
+ */
 function initGrid(numRow: number, numCol: number): Vertex[][] {
   const source: Coord = new Coord(Math.floor(numRow / 2), Math.floor(numCol * 0.20));
   const dest: Coord = new Coord(Math.floor(numRow / 2), Math.floor(numCol * 0.80));

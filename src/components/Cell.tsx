@@ -17,6 +17,7 @@ function BaseCell(props: CellProps) {
   return (
     <div
       className={props.className}
+      draggable="false"
       onMouseDown={props.handleMouseDown}
       onMouseUp={props.handleMouseUp}
       onMouseMove={props.handleMouseMove}>
