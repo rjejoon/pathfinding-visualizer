@@ -18,6 +18,14 @@ interface GridSize {
   height: number;
 }
 
+enum EditMode {
+  Null,
+  Source,
+  Dest,
+  Wall,
+  Weight,
+}
+
 const Grid: React.FC<{ size: GridSize }> = (props) => {
   let w = DESIRED_DIM, h = DESIRED_DIM;
   const numRow = Math.floor(props.size.height / h);
@@ -28,27 +36,54 @@ const Grid: React.FC<{ size: GridSize }> = (props) => {
   h += (props.size.height - numRow * h) / numRow - 0.01;
 
   const [grid, setGrid] = useState<Vertex[][]>(initGrid(numRow, numCol));
+  const [editMode, setEditMode] = useState(EditMode.Null);
 
-  // change source and dest on resize
+  // reset grid on resize
   useEffect(() => {
     setGrid(initGrid(numRow, numCol));
   }, [numRow, numCol]);
 
+  function handleMouseDown(target: Vertex) {
+    console.log(target);
+    if (target.isSource) {
+      setEditMode(EditMode.Source);
+    } else if (target.isDest) {
+      setEditMode(EditMode.Dest);
+    } else {
+      setEditMode(EditMode.Wall);
+    }
+  }
+
+  function handleMouseUp() {
+    setEditMode(EditMode.Null);
+  }
+
+  function handleMouseMove(target: Vertex) {
+    console.log(target);
+    if (editMode === EditMode.Wall) {
+      setGrid(prevGrid => {
+        return prevGrid.map(row => (row.map(v => {
+          if (v.isSource || v.isDest || !(v.row === target.row && v.col === target.col))
+            return v;
+          v.isWall = true;
+          return v;
+        })));
+      });
+    }
+  }
 
   // add cells
-
   const cells = [];
   for (let i = 0; i < grid.length; i++) {
     const children = grid[i].map(v => (
       <Cell
         key={`(${v.row}, ${v.col}`}
-        row={v.row}
-        col={v.col}
-        isSource={v.isSource}
-        isDest={v.isDest}
+        vert={v}
         $width={w}
         $height={h}
-        handleMouseEnter={() => console.log('entered')}
+        handleMouseDown={() => handleMouseDown(v)}
+        handleMouseUp={handleMouseUp}
+        handleMouseMove={() => handleMouseMove(v)}
       />
     ));
     cells.push(<Row key={`row_${i}`} $height={h} >{children}</Row>);

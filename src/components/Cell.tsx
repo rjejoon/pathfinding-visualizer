@@ -1,20 +1,26 @@
 import styled from 'styled-components';
 
+import Vertex from '../models/vertex';
+
 
 interface CellProps {
   className?: string;
-  readonly row: number;
-  readonly col: number;
+  vert: Vertex;
   readonly $width: number;
   readonly $height: number;
-  isSource: boolean;
-  isDest: boolean;
-  handleMouseEnter: () => void;
+  handleMouseDown: () => void;
+  handleMouseUp: () => void;
+  handleMouseMove: () => void;
 }
 
 function BaseCell(props: CellProps) {
   return (
-    <div className={props.className} onMouseEnter={props.handleMouseEnter}></div>
+    <div
+      className={props.className}
+      onMouseDown={props.handleMouseDown}
+      onMouseUp={props.handleMouseUp}
+      onMouseMove={props.handleMouseMove}>
+    </div>
   );
 }
 
@@ -32,8 +38,9 @@ const Cell = styled(BaseCell)`
   border-right: 0.5px solid black;
 
   background-color: ${props => {
-    if (props.isSource) return 'green';
-    else if (props.isDest) return 'red';
+    if (props.vert.isSource) return 'green';
+    else if (props.vert.isDest) return 'red';
+    else if (props.vert.isWall) return 'gray';
     return 'white';
   }}
 `;
