@@ -14,7 +14,7 @@ function App() {
 
   return (
     <>
-      <Navbar height={navbarHeight} />
+      <Navbar $height={navbarHeight} handleClick={() => console.log("clicked")} />
       {windowSize.height &&
         windowSize.width &&
         <Grid size={{
