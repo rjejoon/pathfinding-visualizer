@@ -1,5 +1,5 @@
 
 
-export default class PathFinder {
+export default class PathFindingAlgo {
 
 }

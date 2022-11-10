@@ -5,6 +5,7 @@ export default class Vertex extends Coord {
   isDest: boolean;
   isWall: boolean;
   isVisited: boolean;
+  isPath: boolean;
   weight: number;
   
   constructor(
@@ -14,6 +15,7 @@ export default class Vertex extends Coord {
     isSource: boolean = false, 
     isDest: boolean = false, 
     isWall: boolean = false,
+    isPath: boolean = false,
     isVisited: boolean = false
   ) {
     super(row, col);
@@ -21,6 +23,7 @@ export default class Vertex extends Coord {
     this.isDest = isDest;
     this.isWall = isWall;
     this.isVisited = isVisited;
+    this.isPath = isPath;
     this.weight = weight;
   }
 
@@ -29,7 +32,15 @@ export default class Vertex extends Coord {
   }
 
   copy() {
-    return new Vertex(this.row, this.col, this.weight, this.isSource, this.isDest, this.isWall, this.isVisited);
+    return new Vertex(this.row, this.col, this.weight, this.isSource, this.isDest, this.isWall, this.isPath, this.isVisited);
+  }
+
+  reset() {
+    this.isSource = false;
+    this.isDest = false;
+    this.isWall = false;
+    this.isPath = false;
+    this.isVisited = false;
   }
 
   isValid() {

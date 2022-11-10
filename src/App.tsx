@@ -21,6 +21,13 @@ enum EditMode {
   Weight,
 }
 
+interface Visualizer {
+  visitedVerticesInOrder: Vertex[];
+  parents: Vertex[][];
+  source: Vertex;
+  dest: Vertex;
+}
+
 export default function App() {
   const windowSize = useWindowSize();
   const navbarHeight = 70;
@@ -104,21 +111,53 @@ export default function App() {
   }
 
   function visualizeBFS() {
-    const visitedVerticesInOrder = bfs(grid);
+    const visualizer = bfs(grid);
+    if (visualizer === null) {
+      console.error("Error: bfs failed");
+      return;
+    }
+    const { visitedVerticesInOrder, parents, source, dest } = visualizer;
+
+    const visitPromises: Promise<number>[] = [];
 
     for (let i = 0; i < visitedVerticesInOrder.length; i++) {
-      setTimeout(() => {
-        setGrid(prevGrid => prevGrid.map(row => row.map(u => {
-          const newV = u.copy();
-          if (newV.isEqual(visitedVerticesInOrder[i])) {
-            newV.isVisited = true;
-          }
-          return newV;
-        })));
-      }, 5 * i);
+      visitPromises.push(new Promise<number>((resolve, reject) => {
+        setTimeout(() => {
+          setGrid(prevGrid => prevGrid.map(row => row.map(u => {
+            const newV = u.copy();
+            if (newV.isEqual(visitedVerticesInOrder[i])) {
+              newV.isVisited = true;
+            }
+            return newV;
+          })));
+          resolve(i);
+        }, 5 * i);
+      }));
     }
+
+    Promise.all(visitPromises).then(() => {
+      console.log('animating path')
+      animatePath(parents, source, dest)
+    });
   }
 
+  function animatePath(parents: Vertex[][], source: Vertex, v: Vertex): number {
+    let i = 0;
+    if (!v.isEqual(source)) {
+      i = animatePath(parents, source, parents[v.row][v.col]);
+    }
+    setTimeout(() => {
+      setGrid(prevGrid => prevGrid.map(row => row.map(u => {
+        const newV = u.copy();
+        if (newV.isEqual(v)) {
+          newV.reset();
+          newV.isPath = true;
+        }
+        return newV;
+      })));
+    }, 30 * i);
+    return i + 1;
+  }
 
   return (
     <>
@@ -134,6 +173,8 @@ export default function App() {
     </>
   );
 }
+
+
 
 
 function useWindowSize(): Size {
@@ -213,15 +254,9 @@ function getSourceAndDest(grid: Vertex[][]): [Vertex, Vertex] {
   return [source, dest];
 }
 
-function bfs(grid: Vertex[][]): Vertex[] {
-  const visited: boolean[][] = [];
-  for (let i = 0; i < grid.length; i++) {
-    const row: boolean[] = [];
-    for (let j = 0; j < grid[i].length; j++) {
-      row.push(false);
-    }
-    visited.push(row);
-  }
+function bfs(grid: Vertex[][]): Visualizer | null {
+  const visited: boolean[][] = new Array(grid.length).fill(false).map(() => new Array(grid[0].length).fill(false));
+  const parents: Vertex[][] | undefined = new Array(grid.length).fill(undefined).map(() => new Array(grid[0].length).fill(undefined));
 
   const [source, dest] = getSourceAndDest(grid);
   const queue = new Queue<Vertex>();
@@ -234,8 +269,7 @@ function bfs(grid: Vertex[][]): Vertex[] {
     const v = queue.dequeue();
 
     if (!v) {
-      console.error('Vertex is null');
-      break;
+      return null;
     }
 
     const neighs = [
@@ -252,11 +286,12 @@ function bfs(grid: Vertex[][]): Vertex[] {
         queue.enqueue(u);
         visited[u.row][u.col] = true;
         visitedVerticesInOrder.push(u);
+        parents[u.row][u.col] = v;
       }
       if (u.isEqual(dest)) {
-        return visitedVerticesInOrder;
+        return { visitedVerticesInOrder, parents, source, dest };
       }
     }
   }
-  return visitedVerticesInOrder;
+  return { visitedVerticesInOrder, parents, source, dest };
 }

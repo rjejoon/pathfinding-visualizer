@@ -47,6 +47,7 @@ const Node = styled(BaseNode)`
     else if (props.vert.isDest) return 'red';
     else if (props.vert.isWall) return 'gray';
     else if (props.vert.isVisited) return 'blue';
+    else if (props.vert.isPath) return 'yellow';
     return 'white';
   }}
 `;
