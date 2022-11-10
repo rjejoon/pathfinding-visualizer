@@ -31,4 +31,8 @@ export default class Vertex extends Coord {
   copy() {
     return new Vertex(this.row, this.col, this.weight, this.isSource, this.isDest, this.isWall, this.isVisited);
   }
+
+  isValid() {
+    return !this.isWall;
+  }
 }

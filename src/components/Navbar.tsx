@@ -1,25 +1,26 @@
 import styled from 'styled-components';
 
 
-interface NavbarStyleProps {
+interface NavbarStyle {
   $height: number;
-
 }
-interface NavbarProps extends NavbarStyleProps {
+
+interface NavbarProps {
+  navbarStyle: NavbarStyle;
   handleClick: () => void;
 }
 
 
-const Navbar: React.FC<NavbarProps> = (props) => {
+export default function Navbar({ navbarStyle, handleClick }: NavbarProps) {
   return (
-    <StyledNav $height={props.$height}>
-      <Button onClick={props.handleClick}>Start</Button>
+    <StyledNav $height={navbarStyle.$height}>
+      <Button onClick={handleClick}>Start</Button>
 
     </StyledNav >
   );
 };
 
-const StyledNav = styled.nav<NavbarStyleProps>`
+const StyledNav = styled.nav<NavbarStyle>`
   height: ${props => props.$height}px;
 
   display: flex;
@@ -31,4 +32,3 @@ const Button = styled.button`
   height: 42px;
   min-width: 150px;
 `
-export default Navbar;
