@@ -3,17 +3,21 @@ import styled from 'styled-components';
 import Vertex from '../models/vertex';
 
 
-interface CellProps {
-  className?: string;
-  vert: Vertex;
+export interface NodeStyle {
   readonly $width: number;
   readonly $height: number;
+}
+
+interface NodeProps {
+  className?: string;
+  vert: Vertex;
+  nodeStyle: NodeStyle
   handleMouseDown: () => void;
   handleMouseUp: () => void;
   handleMouseMove: () => void;
 }
 
-function BaseCell(props: CellProps) {
+function BaseNode(props: NodeProps) {
   return (
     <div
       className={props.className}
@@ -25,10 +29,10 @@ function BaseCell(props: CellProps) {
   );
 }
 
-const Cell = styled(BaseCell)`
+const Node = styled(BaseNode)`
   display: inline-block;
-  width: ${props => props.$width}px;
-  height: ${props => props.$height}px;
+  width: ${props => props.nodeStyle.$width}px;
+  height: ${props => props.nodeStyle.$height}px;
   
   border-top: 0.5px solid black;
 
@@ -42,9 +46,10 @@ const Cell = styled(BaseCell)`
     if (props.vert.isSource) return 'green';
     else if (props.vert.isDest) return 'red';
     else if (props.vert.isWall) return 'gray';
+    else if (props.vert.isVisited) return 'blue';
     return 'white';
   }}
 `;
 
 
-export default Cell;
+export default Node;
