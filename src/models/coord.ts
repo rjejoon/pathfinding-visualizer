@@ -7,4 +7,8 @@ export default class Coord {
     this.row = row;
     this.col = col;
   }
+
+  isEqual(other: Coord): boolean {
+    return this.row === other.row && this.col === other.col;
+  }
 }
