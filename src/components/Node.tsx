@@ -43,11 +43,11 @@ const Node = styled(BaseNode)`
   border-right: 0.5px solid black;
 
   background-color: ${props => {
-    if (props.vert.isSource) return 'green';
-    else if (props.vert.isDest) return 'red';
+    if (props.vert.isSource) return '#66ff66';
+    else if (props.vert.isDest) return '#ff6666';
     else if (props.vert.isWall) return 'gray';
-    else if (props.vert.isVisited) return 'blue';
-    else if (props.vert.isPath) return 'yellow';
+    else if (props.vert.isVisited) return '#99e6ff';
+    else if (props.vert.isPath) return '#ffff99';
     return 'white';
   }}
 `;
