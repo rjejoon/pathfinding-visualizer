@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-import Vertex from '../models/vertex';
+import { Vertex } from '../types';
 
 
 export interface NodeStyle {

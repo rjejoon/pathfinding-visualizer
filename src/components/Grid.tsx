@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 import Node, { NodeStyle } from './Node';
-import Vertex from '../models/vertex';
+import { Vertex } from '../types';
 
 
 interface RowProps {

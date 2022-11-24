@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Grid from './components/Grid';
-import Queue from 'queue-fifo';
 
-import Coord from './models/coord';
-import Vertex from './models/vertex';
+import { Vertex } from './types';
+import { initGrid } from './grid';
+import { default as algos } from './pathfinding-algorithms';
 
 const DESIRED_DIM = 25;
 
@@ -21,12 +21,6 @@ enum EditMode {
   Weight,
 }
 
-interface Visualizer {
-  visitedVerticesInOrder: Vertex[];
-  parents: Vertex[][];
-  source: Vertex;
-  dest: Vertex;
-}
 
 export default function App() {
   const windowSize = useWindowSize();
@@ -111,7 +105,7 @@ export default function App() {
     });
   }
 
-  function visualizeBFS() {
+  function visualize() {
     // reset visited and path nodes
     setGrid(prevGrid => prevGrid.map(row => row.map(v => {
       const newV = v.copy();
@@ -120,7 +114,13 @@ export default function App() {
       return newV;
     })));
 
-    const visualizer = bfs(grid);
+    if (!(algoValue in algos)) {
+      console.error(`Error: ${algoValue} does not exist`);
+      return;
+    }
+
+    const visualizer = algos[algoValue](grid);
+
     if (visualizer === null) {
       console.error("Error: bfs failed");
       return;
@@ -181,7 +181,7 @@ export default function App() {
         navbarStyle={{ $height: navbarHeight }}
         algoValue={algoValue}
         changeAlgoOnChange={changeAlgoOnChange}
-        visualizeOnClick={visualizeBFS}
+        visualizeOnClick={visualize}
         resetGridOnClick={resetGridOnClick}
       />
       <Grid
@@ -227,93 +227,4 @@ function useWindowSize(): Size {
   }, []); // Empty array ensures that effect is only run on mount
 
   return windowSize;
-}
-
-/**
- * Creates numRow x numCol grid initialized with Vertex objects.
- * Source and destination vertices are initialized here.
- * 
- * @param numRow - number of rows in grid
- * @param numCol - number of cols in grid
- * @returns 
- */
-function initGrid(numRow: number, numCol: number): Vertex[][] {
-  const source: Coord = new Coord(Math.floor(numRow / 2), Math.floor(numCol * 0.20));
-  const dest: Coord = new Coord(Math.floor(numRow / 2), Math.floor(numCol * 0.80));
-
-  const grid: Vertex[][] = [];
-  for (let r = 0; r < numRow; r++) {
-    const row: Vertex[] = [];
-    for (let c = 0; c < numCol; c++) {
-      const v = new Vertex(r, c);
-      v.isSource = (r === source.row && c === source.col);
-      v.isDest = (r === dest.row && c === dest.col);
-      row.push(v);
-    }
-    grid.push(row);
-  }
-  return grid;
-}
-
-function getSourceAndDest(grid: Vertex[][]): [Vertex, Vertex] {
-  let source: Vertex = new Vertex(-1, -1);
-  let dest: Vertex = new Vertex(-1, -1);
-
-  for (let r = 0; r < grid.length; r++) {
-    for (let c = 0; c < grid[0].length; c++) {
-      if (grid[r][c].isSource) {
-        source = grid[r][c];
-      } else if (grid[r][c].isDest) {
-        dest = grid[r][c];
-      }
-    }
-  }
-
-  if (source.row < 0 || source.col < 0 || dest.row < 0 || dest.col < 0) {
-    console.error("source or dest is not valid");
-  }
-
-  return [source, dest];
-}
-
-function bfs(grid: Vertex[][]): Visualizer | null {
-  const visited: boolean[][] = new Array(grid.length).fill(false).map(() => new Array(grid[0].length).fill(false));
-  const parents: Vertex[][] | undefined = new Array(grid.length).fill(undefined).map(() => new Array(grid[0].length).fill(undefined));
-
-  const [source, dest] = getSourceAndDest(grid);
-  const queue = new Queue<Vertex>();
-  const visitedVerticesInOrder: Vertex[] = [];
-
-  queue.enqueue(source);
-  visited[source.row][source.col] = true;
-
-  while (!queue.isEmpty()) {
-    const v = queue.dequeue();
-
-    if (!v) {
-      return null;
-    }
-
-    const neighs = [
-      new Coord(v.row - 1, v.col),  // up
-      new Coord(v.row, v.col + 1),  // right
-      new Coord(v.row + 1, v.col),  // bottom
-      new Coord(v.row, v.col - 1),  // left
-    ].filter(({ row, col }) => (0 <= row && row < grid.length) && (0 <= col && col < grid[0].length))
-      .map(({ row, col }) => grid[row][col])
-      .filter(v => v.isValid());
-
-    for (const u of neighs) {
-      if (visited[u.row][u.col] === false) {
-        queue.enqueue(u);
-        visited[u.row][u.col] = true;
-        visitedVerticesInOrder.push(u);
-        parents[u.row][u.col] = v;
-      }
-      if (u.isEqual(dest)) {
-        return { visitedVerticesInOrder, parents, source, dest };
-      }
-    }
-  }
-  return { visitedVerticesInOrder, parents, source, dest };
 }
