@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Grid from './components/Grid';
 import Queue from 'queue-fifo';
@@ -41,6 +41,7 @@ export default function App() {
 
   const [grid, setGrid] = useState<Vertex[][]>(initGrid(numRow, numCol));
   const [editMode, setEditMode] = useState(EditMode.Null);
+  const [algoValue, setAlgoValue] = useState<string>("bfs");
 
   // reset grid on resize
   useEffect(() => {
@@ -111,6 +112,14 @@ export default function App() {
   }
 
   function visualizeBFS() {
+    // reset visited and path nodes
+    setGrid(prevGrid => prevGrid.map(row => row.map(v => {
+      const newV = v.copy();
+      newV.isVisited = false;
+      newV.isPath = false;
+      return newV;
+    })));
+
     const visualizer = bfs(grid);
     if (visualizer === null) {
       console.error("Error: bfs failed");
@@ -150,7 +159,6 @@ export default function App() {
       setGrid(prevGrid => prevGrid.map(row => row.map(u => {
         const newV = u.copy();
         if (newV.isEqual(v)) {
-          newV.reset();
           newV.isPath = true;
         }
         return newV;
@@ -159,9 +167,23 @@ export default function App() {
     return i + 1;
   }
 
+  function resetGridOnClick() {
+    setGrid(initGrid(numRow, numCol));
+  }
+
+  function changeAlgoOnChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    setAlgoValue(event.target.value);
+  }
+
   return (
     <>
-      <Navbar navbarStyle={{ $height: navbarHeight }} handleClick={visualizeBFS} />
+      <Navbar
+        navbarStyle={{ $height: navbarHeight }}
+        algoValue={algoValue}
+        changeAlgoOnChange={changeAlgoOnChange}
+        visualizeOnClick={visualizeBFS}
+        resetGridOnClick={resetGridOnClick}
+      />
       <Grid
         grid={grid}
         gridStyle={{ $width: gridWidth, $height: gridHeight }}
