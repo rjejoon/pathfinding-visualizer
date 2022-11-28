@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import Grid from './components/Grid';
 
 import { Vertex } from './types';
-import { initGrid } from './grid';
+import { initGrid, getSourceAndDest } from './grid';
 import { default as algos } from './pathfinding-algorithms';
 
 const DESIRED_DIM = 25;
@@ -33,13 +33,23 @@ export default function App() {
   const numRow = Math.floor(gridHeight / DESIRED_DIM);
   const numCol = Math.floor(gridWidth / DESIRED_DIM);
 
-  const [grid, setGrid] = useState<Vertex[][]>(initGrid(numRow, numCol));
+  const gridRef = useRef(initGrid(numRow, numCol));
+  const nodeRefs = useRef<(HTMLDivElement | null)[][]>([]);
   const [editMode, setEditMode] = useState(EditMode.Null);
   const [algoValue, setAlgoValue] = useState<string>("bfs");
+  const [, setNow] = useState(new Date());
 
   // reset grid on resize
   useEffect(() => {
-    setGrid(initGrid(numRow, numCol));
+    gridRef.current = initGrid(numRow, numCol);
+    nodeRefs.current = [];
+    for (let r = 0; r < numRow; r++) {
+      const row: null[] = [];
+      for (let c = 0; c < numCol; c++) {
+        row.push(null);
+      }
+      nodeRefs.current.push(row);
+    }
   }, [numRow, numCol]);
 
   // adjust width and height
@@ -68,58 +78,47 @@ export default function App() {
     setEditMode(EditMode.Null);
   }
 
+  function forceUpdate() {
+    setNow(new Date());
+  }
+
   /**
    *  
    * @param target - Vertex object at the pointer
    */
   function editGrid(target: Vertex) {
-    setGrid(prevGrid => {
-      return prevGrid.map(row => (row.map(v => {
+    const v = gridRef.current[target.row][target.col]
+    const [oldSource, oldDest] = getSourceAndDest(gridRef.current);
+    if (editMode === EditMode.Wall) {
+      if (!v.isSource && !v.isDest) {
+        gridRef.current[target.row][target.col].isWall = true;
+      }
+    } else if (editMode === EditMode.Source) {
+      gridRef.current[oldSource.row][oldSource.col].isSource = false;
+      gridRef.current[target.row][target.col].isSource = true;
 
-        // TODO 
-
-        const newV = v.copy();
-
-        // other vertices 
-        if (!(v.row === target.row && v.col === target.col)) {
-          if (editMode === EditMode.Source && v.row) {
-            newV.isSource = false;
-          } else if (editMode === EditMode.Dest) {
-            newV.isDest = false;
-          }
-          return newV;
-        }
-
-        // target vertex
-        if (editMode === EditMode.Wall && !newV.isSource && !newV.isDest) {
-          newV.isWall = true;
-        } else if (editMode === EditMode.Source && !v.isDest) {
-          newV.isSource = true;
-        } else if (editMode === EditMode.Dest) {
-          newV.isDest = true;
-        }
-        return newV;
-
-
-      })));
-    });
+    } else if (editMode === EditMode.Dest) {
+      gridRef.current[oldDest.row][oldDest.col].isDest = false;
+      gridRef.current[target.row][target.col].isDest = true;
+    }
+    forceUpdate();
   }
 
   function visualize() {
-    // reset visited and path nodes
-    setGrid(prevGrid => prevGrid.map(row => row.map(v => {
-      const newV = v.copy();
-      newV.isVisited = false;
-      newV.isPath = false;
-      return newV;
-    })));
-
     if (!(algoValue in algos)) {
       console.error(`Error: ${algoValue} does not exist`);
       return;
     }
 
-    const visualizer = algos[algoValue](grid);
+    // reset visited and path nodes
+    for (let r = 0; r < gridRef.current.length; r++) {
+      for (let c = 0; c < gridRef.current[0].length; c++) {
+        gridRef.current[r][c].isVisited = false;
+        gridRef.current[r][c].isPath = false;
+      }
+    }
+
+    const visualizer = algos[algoValue](gridRef.current);
 
     if (visualizer === null) {
       console.error("Error: bfs failed");
@@ -132,13 +131,9 @@ export default function App() {
     for (let i = 0; i < visitedVerticesInOrder.length; i++) {
       visitPromises.push(new Promise<number>((resolve, reject) => {
         setTimeout(() => {
-          setGrid(prevGrid => prevGrid.map(row => row.map(u => {
-            const newV = u.copy();
-            if (newV.isEqual(visitedVerticesInOrder[i])) {
-              newV.isVisited = true;
-            }
-            return newV;
-          })));
+          const targetV = visitedVerticesInOrder[i];
+          gridRef.current[targetV.row][targetV.col].isVisited = true;
+          forceUpdate();
           resolve(i);
         }, 5 * i);
       }));
@@ -156,19 +151,14 @@ export default function App() {
       i = animatePath(parents, source, parents[v.row][v.col]);
     }
     setTimeout(() => {
-      setGrid(prevGrid => prevGrid.map(row => row.map(u => {
-        const newV = u.copy();
-        if (newV.isEqual(v)) {
-          newV.isPath = true;
-        }
-        return newV;
-      })));
+      gridRef.current[v.row][v.col].isPath = true;
+      forceUpdate();
     }, 30 * i);
     return i + 1;
   }
 
   function resetGridOnClick() {
-    setGrid(initGrid(numRow, numCol));
+    gridRef.current = initGrid(numRow, numCol);
   }
 
   function changeAlgoOnChange(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -185,9 +175,10 @@ export default function App() {
         resetGridOnClick={resetGridOnClick}
       />
       <Grid
-        grid={grid}
+        grid={gridRef.current}
         gridStyle={{ $width: gridWidth, $height: gridHeight }}
         nodeStyle={{ $width: w, $height: h }}
+        nodeRefs={nodeRefs}
         handleMouseDown={changeEditMode}
         handleMouseUp={resetEditMode}
         handleMouseMove={editGrid}

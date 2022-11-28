@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import styled from 'styled-components';
 
 import { Vertex } from '../types';
@@ -16,18 +17,18 @@ interface NodeProps {
   handleMouseUp: () => void;
   handleMouseMove: () => void;
 }
+type NodeRef = HTMLDivElement;
 
-function BaseNode(props: NodeProps) {
-  return (
-    <div
-      className={props.className}
-      draggable="false"
-      onMouseDown={props.handleMouseDown}
-      onMouseUp={props.handleMouseUp}
-      onMouseMove={props.handleMouseMove}>
-    </div>
-  );
-}
+const BaseNode = forwardRef<NodeRef, NodeProps>((props, ref) => (
+  <div
+    ref={ref}
+    className={props.className}
+    draggable="false"
+    onMouseDown={props.handleMouseDown}
+    onMouseUp={props.handleMouseUp}
+    onMouseMove={props.handleMouseMove}>
+  </div>
+));
 
 const Node = styled(BaseNode)`
   display: inline-block;

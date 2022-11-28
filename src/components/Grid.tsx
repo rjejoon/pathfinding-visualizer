@@ -17,6 +17,7 @@ interface GridProps {
   grid: Vertex[][];
   gridStyle: GridStyle;
   nodeStyle: NodeStyle;
+  nodeRefs: React.MutableRefObject<(HTMLDivElement | null)[][]>;
   handleMouseDown: (target: Vertex) => void;
   handleMouseUp: () => void;
   handleMouseMove: (target: Vertex) => void;
@@ -26,6 +27,7 @@ export default function Grid({
   grid,
   gridStyle,
   nodeStyle,
+  nodeRefs,
   handleMouseDown,
   handleMouseUp,
   handleMouseMove
@@ -36,6 +38,7 @@ export default function Grid({
     const children = grid[i].map(v => (
       <Node
         key={`(${v.row}, ${v.col}`}
+        ref={el => { nodeRefs.current[v.row][v.col] = el; }}
         vert={v}
         nodeStyle={nodeStyle}
         handleMouseDown={() => handleMouseDown(v)}
