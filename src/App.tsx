@@ -41,10 +41,12 @@ export default function App() {
   const editMode = useRef(EditMode.Null);
   const [algoValue, setAlgoValue] = useState<string>("bfs");
   const [, setNow] = useState(new Date());
+  const [hasVisualized, setHasVisualized] = useState(false);
 
   // reset grid on resize
   useEffect(() => {
     gridRef.current = initGrid(numRow, numCol);
+    setHasVisualized(false);
     forceDeepRender();
   }, [numRow, numCol]);
 
@@ -88,15 +90,20 @@ export default function App() {
     const [oldSource, oldDest] = getSourceAndDest(gridRef.current);
     if (editMode.current === EditMode.Wall) {
       if (!v.isSource && !v.isDest) {
-        gridRef.current[target.row][target.col].isWall = true;
+        // TODO delete wall
+        v.isWall = true;
       }
     } else if (editMode.current === EditMode.Source) {
       gridRef.current[oldSource.row][oldSource.col].isSource = false;
-      gridRef.current[target.row][target.col].isSource = true;
+      v.isSource = true;
 
     } else if (editMode.current === EditMode.Dest) {
       gridRef.current[oldDest.row][oldDest.col].isDest = false;
-      gridRef.current[target.row][target.col].isDest = true;
+      v.isDest = true;
+    }
+
+    if (hasVisualized) {
+      visualize();
     }
   }
 
@@ -121,37 +128,57 @@ export default function App() {
       return;
     }
     const { visitedVerticesInOrder, parents, source, dest } = visualizer;
+    console.log(visualizer);
 
     const visitPromises: Promise<number>[] = [];
 
     for (let i = 0; i < visitedVerticesInOrder.length; i++) {
-      visitPromises.push(new Promise<number>((resolve, reject) => {
-        setTimeout(() => {
-          const targetV = visitedVerticesInOrder[i];
-          gridRef.current[targetV.row][targetV.col].isVisited = true;
-          resolve(i);
-        }, 5 * i);
-      }));
+      const targetV = visitedVerticesInOrder[i];
+      if (hasVisualized) {
+        gridRef.current[targetV.row][targetV.col].isVisited = true;
+      } else {
+        visitPromises.push(new Promise<number>((resolve, reject) => {
+          setTimeout(() => {
+            gridRef.current[targetV.row][targetV.col].isVisited = true;
+            resolve(i);
+          }, 5 * i);
+        }));
+      }
     }
 
-    Promise.all(visitPromises).then(() => {
-      animatePath(parents, source, dest)
-    });
+    if (hasVisualized) {
+      animatePath(parents, source, dest);
+      setHasVisualized(true);
+    } else {
+      Promise.all(visitPromises).then(() => {
+        animatePath(parents, source, dest)
+        setHasVisualized(true);
+      });
+    }
   }
 
   function animatePath(parents: Vertex[][], source: Vertex, v: Vertex): number {
+    if (v === undefined) {
+      return -1;
+    }
     let i = 0;
     if (!v.isEqual(source)) {
       i = animatePath(parents, source, parents[v.row][v.col]);
     }
-    setTimeout(() => {
+
+    if (hasVisualized) {
       gridRef.current[v.row][v.col].isPath = true;
-    }, 5 * i);
+    } else {
+      setTimeout(() => {
+        gridRef.current[v.row][v.col].isPath = true;
+      }, 10 * i);
+    }
     return i + 1;
   }
 
   function resetGridOnClick() {
     gridRef.current = initGrid(numRow, numCol);
+    setHasVisualized(false);
     forceDeepRender();
   }
 
