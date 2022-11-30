@@ -1,25 +1,26 @@
+import { forwardRef } from 'react';
 import styled from 'styled-components';
 
-import { Vertex } from '../types';
 
-
-export interface NodeStyle {
+export interface NodeDim {
   readonly $width: number;
   readonly $height: number;
 }
 
-interface NodeProps {
+type NodeProps = {
   className?: string;
-  vert: Vertex;
-  nodeStyle: NodeStyle
+  nodeDim: NodeDim
   handleMouseDown: () => void;
   handleMouseUp: () => void;
   handleMouseMove: () => void;
 }
 
-function BaseNode(props: NodeProps) {
+type NodeRef = HTMLDivElement;
+
+const BaseNode = forwardRef<NodeRef, NodeProps>((props, ref) => {
   return (
     <div
+      ref={ref}
       className={props.className}
       draggable="false"
       onMouseDown={props.handleMouseDown}
@@ -27,14 +28,11 @@ function BaseNode(props: NodeProps) {
       onMouseMove={props.handleMouseMove}>
     </div>
   );
-}
+});
 
-const Node = styled(BaseNode)`
-  display: inline-block;
-  width: ${props => props.nodeStyle.$width}px;
-  height: ${props => props.nodeStyle.$height}px;
-  
-  border-top: 0.5px solid black;
+const Node = styled(BaseNode).attrs(props => ({
+  className: props.className,
+}))`
 
   &:nth-child(1) { 
     border-left: 0.5px solid black;
@@ -42,26 +40,28 @@ const Node = styled(BaseNode)`
 
   border-right: 0.5px solid black;
 
-  background-color: ${props => {
-    let color: string = 'white';
-    if (props.vert.isSource)
-      color = '#66ff66';
-    else if (props.vert.isDest)
-      color = '#ff6666';
-    else if (props.vert.isVisited)
-      color = '#99e6ff';
+  /* & .isSource {
+    background-color: '#66ff66';
+  }
+  & .isDest {
+    background-color: '#ff6666';
+  }
+  & .isVisited {
+    background-color: '#99e6ff';
+  }
+  & .isWall {
+    background-color: #163057;
+    border: none;
+  }
+  & .isPath {
+    background-color: '#ffff99';
+  } */
 
-    // higher precedence
-    if (props.vert.isWall)
-      color = '#163057';
-    else if (props.vert.isPath)
-      color = '#ffff99';
-    return color;
-  }};
-
-  border: ${props => {
-    if (props.vert.isWall) return 'none';
-  }};
+  display: inline-block;
+  width: ${props => props.nodeDim.$width}px;
+  height: ${props => props.nodeDim.$height}px;
+  
+  border-top: 0.5px solid black;
 
   /* transition: background-color 0.5s cubic-bezier(0,1.02,1,.98); */
 `;

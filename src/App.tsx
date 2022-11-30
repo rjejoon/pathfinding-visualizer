@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import Grid from './components/Grid';
 
 import { Vertex } from './types';
-import { initGrid } from './grid';
+import { initGrid, getSourceAndDest } from './grid';
 import { default as algos } from './pathfinding-algorithms';
 
 const DESIRED_DIM = 25;
 
-interface Size {
+interface WindowSize {
   width: number | undefined;
   height: number | undefined;
 }
@@ -33,18 +33,21 @@ export default function App() {
   const numRow = Math.floor(gridHeight / DESIRED_DIM);
   const numCol = Math.floor(gridWidth / DESIRED_DIM);
 
-  const [grid, setGrid] = useState<Vertex[][]>(initGrid(numRow, numCol));
-  const [editMode, setEditMode] = useState(EditMode.Null);
-  const [algoValue, setAlgoValue] = useState<string>("bfs");
-
-  // reset grid on resize
-  useEffect(() => {
-    setGrid(initGrid(numRow, numCol));
-  }, [numRow, numCol]);
-
   // adjust width and height
   w += (gridWidth - numCol * w) / numCol - 0.01;
   h += (gridHeight - numRow * h) / numRow - 0.01;
+
+  const gridRef = useRef(initGrid(numRow, numCol));
+  const editMode = useRef(EditMode.Null);
+  const [algoValue, setAlgoValue] = useState<string>("bfs");
+  const [, setNow] = useState(new Date());
+
+  // reset grid on resize
+  useEffect(() => {
+    gridRef.current = initGrid(numRow, numCol);
+    forceDeepRender();
+  }, [numRow, numCol]);
+
 
   /**
    * Change edit mode depending on which type of vertex the mouse is pointing.
@@ -56,70 +59,62 @@ export default function App() {
    */
   function changeEditMode(target: Vertex) {
     if (target.isSource) {
-      setEditMode(EditMode.Source);
+      editMode.current = EditMode.Source;
     } else if (target.isDest) {
-      setEditMode(EditMode.Dest);
+      editMode.current = EditMode.Dest;
     } else {
-      setEditMode(EditMode.Wall);
+      editMode.current = EditMode.Wall;
     }
   }
 
   function resetEditMode() {
-    setEditMode(EditMode.Null);
+    editMode.current = EditMode.Null;
   }
+
+  /**
+   * Force deep re-rendering.
+   */
+  function forceDeepRender() {
+    setNow(new Date());
+  }
+
 
   /**
    *  
    * @param target - Vertex object at the pointer
    */
   function editGrid(target: Vertex) {
-    setGrid(prevGrid => {
-      return prevGrid.map(row => (row.map(v => {
+    const v = gridRef.current[target.row][target.col]
+    const [oldSource, oldDest] = getSourceAndDest(gridRef.current);
+    if (editMode.current === EditMode.Wall) {
+      if (!v.isSource && !v.isDest) {
+        gridRef.current[target.row][target.col].isWall = true;
+      }
+    } else if (editMode.current === EditMode.Source) {
+      gridRef.current[oldSource.row][oldSource.col].isSource = false;
+      gridRef.current[target.row][target.col].isSource = true;
 
-        // TODO 
-
-        const newV = v.copy();
-
-        // other vertices 
-        if (!(v.row === target.row && v.col === target.col)) {
-          if (editMode === EditMode.Source && v.row) {
-            newV.isSource = false;
-          } else if (editMode === EditMode.Dest) {
-            newV.isDest = false;
-          }
-          return newV;
-        }
-
-        // target vertex
-        if (editMode === EditMode.Wall && !newV.isSource && !newV.isDest) {
-          newV.isWall = true;
-        } else if (editMode === EditMode.Source && !v.isDest) {
-          newV.isSource = true;
-        } else if (editMode === EditMode.Dest) {
-          newV.isDest = true;
-        }
-        return newV;
-
-
-      })));
-    });
+    } else if (editMode.current === EditMode.Dest) {
+      gridRef.current[oldDest.row][oldDest.col].isDest = false;
+      gridRef.current[target.row][target.col].isDest = true;
+    }
   }
 
   function visualize() {
-    // reset visited and path nodes
-    setGrid(prevGrid => prevGrid.map(row => row.map(v => {
-      const newV = v.copy();
-      newV.isVisited = false;
-      newV.isPath = false;
-      return newV;
-    })));
-
     if (!(algoValue in algos)) {
       console.error(`Error: ${algoValue} does not exist`);
       return;
     }
 
-    const visualizer = algos[algoValue](grid);
+    // reset visited and path nodes
+    for (let r = 0; r < gridRef.current.length; r++) {
+      for (let c = 0; c < gridRef.current[0].length; c++) {
+        gridRef.current[r][c].isVisited = false;
+        gridRef.current[r][c].isPath = false;
+      }
+    }
+
+    const visualizer = algos[algoValue](gridRef.current);
 
     if (visualizer === null) {
       console.error("Error: bfs failed");
@@ -132,20 +127,14 @@ export default function App() {
     for (let i = 0; i < visitedVerticesInOrder.length; i++) {
       visitPromises.push(new Promise<number>((resolve, reject) => {
         setTimeout(() => {
-          setGrid(prevGrid => prevGrid.map(row => row.map(u => {
-            const newV = u.copy();
-            if (newV.isEqual(visitedVerticesInOrder[i])) {
-              newV.isVisited = true;
-            }
-            return newV;
-          })));
+          const targetV = visitedVerticesInOrder[i];
+          gridRef.current[targetV.row][targetV.col].isVisited = true;
           resolve(i);
         }, 5 * i);
       }));
     }
 
     Promise.all(visitPromises).then(() => {
-      console.log('animating path')
       animatePath(parents, source, dest)
     });
   }
@@ -156,24 +145,20 @@ export default function App() {
       i = animatePath(parents, source, parents[v.row][v.col]);
     }
     setTimeout(() => {
-      setGrid(prevGrid => prevGrid.map(row => row.map(u => {
-        const newV = u.copy();
-        if (newV.isEqual(v)) {
-          newV.isPath = true;
-        }
-        return newV;
-      })));
-    }, 30 * i);
+      gridRef.current[v.row][v.col].isPath = true;
+    }, 5 * i);
     return i + 1;
   }
 
   function resetGridOnClick() {
-    setGrid(initGrid(numRow, numCol));
+    gridRef.current = initGrid(numRow, numCol);
+    forceDeepRender();
   }
 
   function changeAlgoOnChange(event: React.ChangeEvent<HTMLSelectElement>) {
     setAlgoValue(event.target.value);
   }
+  console.log("render App");    // TODO delete later
 
   return (
     <>
@@ -185,9 +170,9 @@ export default function App() {
         resetGridOnClick={resetGridOnClick}
       />
       <Grid
-        grid={grid}
-        gridStyle={{ $width: gridWidth, $height: gridHeight }}
-        nodeStyle={{ $width: w, $height: h }}
+        grid={gridRef.current}
+        gridDim={{ $width: gridWidth, $height: gridHeight }}
+        nodeDim={{ $width: w, $height: h }}
         handleMouseDown={changeEditMode}
         handleMouseUp={resetEditMode}
         handleMouseMove={editGrid}
@@ -197,11 +182,9 @@ export default function App() {
 }
 
 
-
-
-function useWindowSize(): Size {
+function useWindowSize(): WindowSize {
   // Initialize state with undefined width/height so server and client renders match
-  const [windowSize, setWindowSize] = useState<Size>({
+  const [windowSize, setWindowSize] = useState<WindowSize>({
     width: undefined,
     height: undefined,
   });

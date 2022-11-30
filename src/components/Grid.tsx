@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-import Node, { NodeStyle } from './Node';
+import Node, { NodeDim } from './Node';
 import { Vertex } from '../types';
 
 
@@ -8,15 +8,15 @@ interface RowProps {
   readonly $height: number;
 }
 
-interface GridStyle {
+interface GridDim {
   readonly $width: number;
   readonly $height: number;
 }
 
-interface GridProps {
+type GridProps = {
   grid: Vertex[][];
-  gridStyle: GridStyle;
-  nodeStyle: NodeStyle;
+  gridDim: GridDim;
+  nodeDim: NodeDim;
   handleMouseDown: (target: Vertex) => void;
   handleMouseUp: () => void;
   handleMouseMove: (target: Vertex) => void;
@@ -24,8 +24,8 @@ interface GridProps {
 
 export default function Grid({
   grid,
-  gridStyle,
-  nodeStyle,
+  gridDim,
+  nodeDim,
   handleMouseDown,
   handleMouseUp,
   handleMouseMove
@@ -36,25 +36,25 @@ export default function Grid({
     const children = grid[i].map(v => (
       <Node
         key={`(${v.row}, ${v.col}`}
-        vert={v}
-        nodeStyle={nodeStyle}
+        nodeDim={nodeDim}
+        ref={el => v.htmlElement = el}
         handleMouseDown={() => handleMouseDown(v)}
         handleMouseUp={handleMouseUp}
         handleMouseMove={() => handleMouseMove(v)}
       />
     ));
-    nodeElements.push(<Row key={`row_${i}`} $height={nodeStyle.$height} >{children}</Row>);
+    nodeElements.push(<Row key={`row_${i}`} $height={nodeDim.$height} >{children}</Row>);
   }
 
   return (
-    <StyledGrid gridStyle={gridStyle} as="main">
+    <StyledGrid gridStyle={gridDim} as="main">
       {nodeElements}
     </StyledGrid>
   );
 };
 
 
-const StyledGrid = styled.div<{ gridStyle: GridStyle }>`
+const StyledGrid = styled.div<{ gridStyle: GridDim }>`
   height: ${props => props.gridStyle.$height}px;
   width: ${props => props.gridStyle.$width}px;
 `;
