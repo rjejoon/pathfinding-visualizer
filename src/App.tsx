@@ -8,7 +8,7 @@ import { default as algos } from './pathfinding-algorithms';
 
 const DESIRED_DIM = 25;
 
-interface Size {
+interface WindowSize {
   width: number | undefined;
   height: number | undefined;
 }
@@ -35,7 +35,7 @@ export default function App() {
 
   const gridRef = useRef(initGrid(numRow, numCol));
   const nodeRefs = useRef<(HTMLDivElement | null)[][]>([]);
-  const [editMode, setEditMode] = useState(EditMode.Null);
+  let editMode = useRef(EditMode.Null);
   const [algoValue, setAlgoValue] = useState<string>("bfs");
   const [, setNow] = useState(new Date());
 
@@ -50,6 +50,7 @@ export default function App() {
       }
       nodeRefs.current.push(row);
     }
+    forceUpdate();
   }, [numRow, numCol]);
 
   // adjust width and height
@@ -66,20 +67,34 @@ export default function App() {
    */
   function changeEditMode(target: Vertex) {
     if (target.isSource) {
-      setEditMode(EditMode.Source);
+      editMode.current = EditMode.Source;
     } else if (target.isDest) {
-      setEditMode(EditMode.Dest);
+      editMode.current = EditMode.Dest;
     } else {
-      setEditMode(EditMode.Wall);
+      editMode.current = EditMode.Wall;
     }
   }
 
   function resetEditMode() {
-    setEditMode(EditMode.Null);
+    editMode.current = EditMode.Null;
   }
 
+  /**
+   * Force deep re-rendering.
+   */
   function forceUpdate() {
     setNow(new Date());
+  }
+
+  function syncNodeRefsWithGridRef() {
+    for (const row of gridRef.current) {
+      for (const v of row) {
+        const targetNode = nodeRefs.current[v.row][v.col];
+        if (targetNode) {
+          targetNode.className = v.className();
+        }
+      }
+    }
   }
 
   /**
@@ -89,19 +104,19 @@ export default function App() {
   function editGrid(target: Vertex) {
     const v = gridRef.current[target.row][target.col]
     const [oldSource, oldDest] = getSourceAndDest(gridRef.current);
-    if (editMode === EditMode.Wall) {
+    if (editMode.current === EditMode.Wall) {
       if (!v.isSource && !v.isDest) {
         gridRef.current[target.row][target.col].isWall = true;
       }
-    } else if (editMode === EditMode.Source) {
+    } else if (editMode.current === EditMode.Source) {
       gridRef.current[oldSource.row][oldSource.col].isSource = false;
       gridRef.current[target.row][target.col].isSource = true;
 
-    } else if (editMode === EditMode.Dest) {
+    } else if (editMode.current === EditMode.Dest) {
       gridRef.current[oldDest.row][oldDest.col].isDest = false;
       gridRef.current[target.row][target.col].isDest = true;
     }
-    forceUpdate();
+    syncNodeRefsWithGridRef();
   }
 
   function visualize() {
@@ -132,8 +147,12 @@ export default function App() {
       visitPromises.push(new Promise<number>((resolve, reject) => {
         setTimeout(() => {
           const targetV = visitedVerticesInOrder[i];
+          const targetNode = nodeRefs.current[targetV.row][targetV.col]
           gridRef.current[targetV.row][targetV.col].isVisited = true;
-          forceUpdate();
+          syncNodeRefsWithGridRef();
+          // if (targetNode) {
+          //   targetNode.style.background = '#99e6ff';
+          // }
           resolve(i);
         }, 5 * i);
       }));
@@ -151,9 +170,13 @@ export default function App() {
       i = animatePath(parents, source, parents[v.row][v.col]);
     }
     setTimeout(() => {
+      const targetNode = nodeRefs.current[v.row][v.col];
       gridRef.current[v.row][v.col].isPath = true;
-      forceUpdate();
-    }, 30 * i);
+      syncNodeRefsWithGridRef();
+      // if (targetNode) {
+      //   targetNode.style.background = '#ffff99';
+      // }
+    }, 5 * i);
     return i + 1;
   }
 
@@ -164,6 +187,7 @@ export default function App() {
   function changeAlgoOnChange(event: React.ChangeEvent<HTMLSelectElement>) {
     setAlgoValue(event.target.value);
   }
+  console.log("render app")
 
   return (
     <>
@@ -176,8 +200,8 @@ export default function App() {
       />
       <Grid
         grid={gridRef.current}
-        gridStyle={{ $width: gridWidth, $height: gridHeight }}
-        nodeStyle={{ $width: w, $height: h }}
+        gridDim={{ $width: gridWidth, $height: gridHeight }}
+        nodeDim={{ $width: w, $height: h }}
         nodeRefs={nodeRefs}
         handleMouseDown={changeEditMode}
         handleMouseUp={resetEditMode}
@@ -190,9 +214,9 @@ export default function App() {
 
 
 
-function useWindowSize(): Size {
+function useWindowSize(): WindowSize {
   // Initialize state with undefined width/height so server and client renders match
-  const [windowSize, setWindowSize] = useState<Size>({
+  const [windowSize, setWindowSize] = useState<WindowSize>({
     width: undefined,
     height: undefined,
   });

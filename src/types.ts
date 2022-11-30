@@ -53,6 +53,26 @@ export class Vertex extends Coord {
   isValid() {
     return !this.isWall;
   }
+
+  className() {
+    const classList: string[] = [];
+    if (this.isSource) {
+      classList.push("isSource");
+    }
+    if (this.isDest) {
+      classList.push("isDest");
+    }
+    if (this.isWall) {
+      classList.push("isWall");
+    }
+    if (this.isPath) {
+      classList.push("isPath");
+    }
+    if (this.isVisited) {
+      classList.push("isVisited");
+    }
+    return classList.join(" ");
+  }
 }
 
 export interface Visualizer {
