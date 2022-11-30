@@ -1,8 +1,6 @@
 import { forwardRef } from 'react';
 import styled from 'styled-components';
 
-import { Vertex } from '../types';
-
 
 export interface NodeDim {
   readonly $width: number;
@@ -16,23 +14,24 @@ type NodeProps = {
   handleMouseUp: () => void;
   handleMouseMove: () => void;
 }
+
 type NodeRef = HTMLDivElement;
 
-const BaseNode = forwardRef<NodeRef, NodeProps>((props, ref) => (
-  <div
-    ref={ref}
-    className={props.className}
-    draggable="false"
-    onMouseDown={props.handleMouseDown}
-    onMouseUp={props.handleMouseUp}
-    onMouseMove={props.handleMouseMove}>
-  </div>
-));
+const BaseNode = forwardRef<NodeRef, NodeProps>((props, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={props.className}
+      draggable="false"
+      onMouseDown={props.handleMouseDown}
+      onMouseUp={props.handleMouseUp}
+      onMouseMove={props.handleMouseMove}>
+    </div>
+  );
+});
 
 const Node = styled(BaseNode).attrs(props => ({
-
   className: props.className,
-
 }))`
 
   &:nth-child(1) { 
@@ -41,7 +40,7 @@ const Node = styled(BaseNode).attrs(props => ({
 
   border-right: 0.5px solid black;
 
-  & .isSource {
+  /* & .isSource {
     background-color: '#66ff66';
   }
   & .isDest {
@@ -56,7 +55,7 @@ const Node = styled(BaseNode).attrs(props => ({
   }
   & .isPath {
     background-color: '#ffff99';
-  }
+  } */
 
   display: inline-block;
   width: ${props => props.nodeDim.$width}px;

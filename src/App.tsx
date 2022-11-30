@@ -33,29 +33,21 @@ export default function App() {
   const numRow = Math.floor(gridHeight / DESIRED_DIM);
   const numCol = Math.floor(gridWidth / DESIRED_DIM);
 
+  // adjust width and height
+  w += (gridWidth - numCol * w) / numCol - 0.01;
+  h += (gridHeight - numRow * h) / numRow - 0.01;
+
   const gridRef = useRef(initGrid(numRow, numCol));
-  const nodeRefs = useRef<(HTMLDivElement | null)[][]>([]);
-  let editMode = useRef(EditMode.Null);
+  const editMode = useRef(EditMode.Null);
   const [algoValue, setAlgoValue] = useState<string>("bfs");
   const [, setNow] = useState(new Date());
 
   // reset grid on resize
   useEffect(() => {
     gridRef.current = initGrid(numRow, numCol);
-    nodeRefs.current = [];
-    for (let r = 0; r < numRow; r++) {
-      const row: null[] = [];
-      for (let c = 0; c < numCol; c++) {
-        row.push(null);
-      }
-      nodeRefs.current.push(row);
-    }
-    forceUpdate();
+    forceDeepRender();
   }, [numRow, numCol]);
 
-  // adjust width and height
-  w += (gridWidth - numCol * w) / numCol - 0.01;
-  h += (gridHeight - numRow * h) / numRow - 0.01;
 
   /**
    * Change edit mode depending on which type of vertex the mouse is pointing.
@@ -82,20 +74,10 @@ export default function App() {
   /**
    * Force deep re-rendering.
    */
-  function forceUpdate() {
+  function forceDeepRender() {
     setNow(new Date());
   }
 
-  function syncNodeRefsWithGridRef() {
-    for (const row of gridRef.current) {
-      for (const v of row) {
-        const targetNode = nodeRefs.current[v.row][v.col];
-        if (targetNode) {
-          targetNode.className = v.className();
-        }
-      }
-    }
-  }
 
   /**
    *  
@@ -116,7 +98,6 @@ export default function App() {
       gridRef.current[oldDest.row][oldDest.col].isDest = false;
       gridRef.current[target.row][target.col].isDest = true;
     }
-    syncNodeRefsWithGridRef();
   }
 
   function visualize() {
@@ -147,19 +128,13 @@ export default function App() {
       visitPromises.push(new Promise<number>((resolve, reject) => {
         setTimeout(() => {
           const targetV = visitedVerticesInOrder[i];
-          const targetNode = nodeRefs.current[targetV.row][targetV.col]
           gridRef.current[targetV.row][targetV.col].isVisited = true;
-          syncNodeRefsWithGridRef();
-          // if (targetNode) {
-          //   targetNode.style.background = '#99e6ff';
-          // }
           resolve(i);
         }, 5 * i);
       }));
     }
 
     Promise.all(visitPromises).then(() => {
-      console.log('animating path')
       animatePath(parents, source, dest)
     });
   }
@@ -170,24 +145,20 @@ export default function App() {
       i = animatePath(parents, source, parents[v.row][v.col]);
     }
     setTimeout(() => {
-      const targetNode = nodeRefs.current[v.row][v.col];
       gridRef.current[v.row][v.col].isPath = true;
-      syncNodeRefsWithGridRef();
-      // if (targetNode) {
-      //   targetNode.style.background = '#ffff99';
-      // }
     }, 5 * i);
     return i + 1;
   }
 
   function resetGridOnClick() {
     gridRef.current = initGrid(numRow, numCol);
+    forceDeepRender();
   }
 
   function changeAlgoOnChange(event: React.ChangeEvent<HTMLSelectElement>) {
     setAlgoValue(event.target.value);
   }
-  console.log("render app")
+  console.log("render App");    // TODO delete later
 
   return (
     <>
@@ -202,7 +173,6 @@ export default function App() {
         grid={gridRef.current}
         gridDim={{ $width: gridWidth, $height: gridHeight }}
         nodeDim={{ $width: w, $height: h }}
-        nodeRefs={nodeRefs}
         handleMouseDown={changeEditMode}
         handleMouseUp={resetEditMode}
         handleMouseMove={editGrid}
@@ -210,8 +180,6 @@ export default function App() {
     </>
   );
 }
-
-
 
 
 function useWindowSize(): WindowSize {
