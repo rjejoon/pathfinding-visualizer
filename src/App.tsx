@@ -39,6 +39,7 @@ export default function App() {
 
   const gridRef = useRef(initGrid(numRow, numCol));
   const editMode = useRef(EditMode.Null);
+  const lastEditedVertex = useRef<Vertex | null>(null);
   const [algoValue, setAlgoValue] = useState<string>("bfs");
   const [, setNow] = useState(new Date());
   const [hasVisualized, setHasVisualized] = useState(false);
@@ -86,21 +87,33 @@ export default function App() {
    * @param target - Vertex object at the pointer
    */
   function editGrid(target: Vertex) {
+    if (editMode.current === EditMode.Null) {
+      return;
+    }
+
     const v = gridRef.current[target.row][target.col]
+    if (lastEditedVertex.current !== null && v.isEqual(lastEditedVertex.current)) {
+      // prevent triggering editing within the same vertex
+      return;
+    }
+
     const [oldSource, oldDest] = getSourceAndDest(gridRef.current);
     if (editMode.current === EditMode.Wall) {
       if (!v.isSource && !v.isDest) {
-        // TODO delete wall
-        v.isWall = true;
+        v.isWall = !v.isWall;
       }
     } else if (editMode.current === EditMode.Source) {
-      gridRef.current[oldSource.row][oldSource.col].isSource = false;
-      v.isSource = true;
-
+      if (!v.isWall) {
+        gridRef.current[oldSource.row][oldSource.col].isSource = false;
+        v.isSource = true;
+      }
     } else if (editMode.current === EditMode.Dest) {
-      gridRef.current[oldDest.row][oldDest.col].isDest = false;
-      v.isDest = true;
+      if (!v.isWall) {
+        gridRef.current[oldDest.row][oldDest.col].isDest = false;
+        v.isDest = true;
+      }
     }
+    lastEditedVertex.current = v;
 
     if (hasVisualized) {
       visualize();
@@ -124,11 +137,10 @@ export default function App() {
     const visualizer = algos[algoValue](gridRef.current);
 
     if (visualizer === null) {
-      console.error("Error: bfs failed");
+      console.error(`Error: ${algoValue} failed`);
       return;
     }
     const { visitedVerticesInOrder, parents, source, dest } = visualizer;
-    console.log(visualizer);
 
     const visitPromises: Promise<number>[] = [];
 
@@ -203,6 +215,7 @@ export default function App() {
         handleMouseDown={changeEditMode}
         handleMouseUp={resetEditMode}
         handleMouseMove={editGrid}
+      // handleMouseClick={editGrid}
       />
     </>
   );
