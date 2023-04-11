@@ -1,17 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
-import Navbar from './components/Navbar';
-import Grid from './components/Grid';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import Navbar from "./components/Navbar";
+import Grid from "./components/Grid";
 
-import { Vertex } from './types';
-import { initGrid, getSourceAndDest } from './grid';
-import { default as algos } from './pathfinding-algorithms';
+import { GraphAlgoOptions, Vertex } from "./types";
+import { initGrid, getSourceAndDest } from "./grid";
+import algoVisualizers from "./graph/visualizer-map";
+import useWindowSize from "./hooks/use-window-size";
 
 const DESIRED_DIM = 25;
-
-interface WindowSize {
-  width: number | undefined;
-  height: number | undefined;
-}
 
 enum EditMode {
   Null,
@@ -21,7 +17,6 @@ enum EditMode {
   Weight,
 }
 
-
 export default function App() {
   const windowSize = useWindowSize();
   const navbarHeight = 70;
@@ -29,7 +24,8 @@ export default function App() {
   const gridWidth = windowSize.width || 0;
   const gridHeight = (windowSize.height || 0) - navbarHeight;
 
-  let w = DESIRED_DIM, h = DESIRED_DIM;
+  let w = DESIRED_DIM;
+  let h = DESIRED_DIM;
   const numRow = Math.floor(gridHeight / DESIRED_DIM);
   const numCol = Math.floor(gridWidth / DESIRED_DIM);
 
@@ -40,24 +36,27 @@ export default function App() {
   const gridRef = useRef(initGrid(numRow, numCol));
   const editMode = useRef(EditMode.Null);
   const lastEditedVertex = useRef<Vertex | null>(null);
-  const [algoValue, setAlgoValue] = useState<string>("bfs");
-  const [, setNow] = useState(new Date());
+  const [algoValue, setAlgoValue] = useState<GraphAlgoOptions>("bfs");
+  const [, setNow] = useState(new Date()); // used to force deep re-rendering
   const [hasVisualized, setHasVisualized] = useState(false);
 
-  // reset grid on resize
-  useEffect(() => {
+  const resetGrid = useCallback(() => {
     gridRef.current = initGrid(numRow, numCol);
     setHasVisualized(false);
     forceDeepRender();
   }, [numRow, numCol]);
 
+  useEffect(() => {
+    // reset grid on resize
+    resetGrid();
+  }, [numRow, numCol, resetGrid]);
 
   /**
    * Change edit mode depending on which type of vertex the mouse is pointing.
    * If mouse is down on source vertex, set EditMode to Source.
    * If mouse is down on destination vertex, set EditMode to Dest.
    * Otherwise, set EditMode to Wall.
-   * 
+   *
    * @param target - Vertex object at the pointer
    */
   function changeEditMode(target: Vertex) {
@@ -81,9 +80,8 @@ export default function App() {
     setNow(new Date());
   }
 
-
   /**
-   *  
+   *
    * @param target - Vertex object at the pointer
    */
   function editGrid(target: Vertex) {
@@ -91,8 +89,11 @@ export default function App() {
       return;
     }
 
-    const v = gridRef.current[target.row][target.col]
-    if (lastEditedVertex.current !== null && v.isEqual(lastEditedVertex.current)) {
+    const v = gridRef.current[target.row][target.col];
+    if (
+      lastEditedVertex.current !== null &&
+      v.isEqual(lastEditedVertex.current)
+    ) {
       // prevent triggering editing within the same vertex
       return;
     }
@@ -120,9 +121,9 @@ export default function App() {
     }
   }
 
-  function visualize() {
-    if (!(algoValue in algos)) {
-      console.error(`Error: ${algoValue} does not exist`);
+  async function visualize() {
+    if (!(algoValue in algoVisualizers)) {
+      console.error(`Error: Invalid algoValue: ${algoValue}`);
       return;
     }
 
@@ -134,12 +135,13 @@ export default function App() {
       }
     }
 
-    const visualizer = algos[algoValue](gridRef.current);
+    const visualizer = algoVisualizers[algoValue](gridRef.current);
 
     if (visualizer === null) {
       console.error(`Error: ${algoValue} failed`);
       return;
     }
+
     const { visitedVerticesInOrder, parents, source, dest } = visualizer;
 
     const visitPromises: Promise<number>[] = [];
@@ -149,12 +151,14 @@ export default function App() {
       if (hasVisualized) {
         gridRef.current[targetV.row][targetV.col].isVisited = true;
       } else {
-        visitPromises.push(new Promise<number>((resolve, reject) => {
-          setTimeout(() => {
-            gridRef.current[targetV.row][targetV.col].isVisited = true;
-            resolve(i);
-          }, 5 * i);
-        }));
+        visitPromises.push(
+          new Promise<number>((resolve, reject) => {
+            setTimeout(() => {
+              gridRef.current[targetV.row][targetV.col].isVisited = true;
+              resolve(i);
+            }, 5 * i);
+          })
+        );
       }
     }
 
@@ -162,10 +166,9 @@ export default function App() {
       animatePath(parents, source, dest);
       setHasVisualized(true);
     } else {
-      Promise.all(visitPromises).then(() => {
-        animatePath(parents, source, dest)
-        setHasVisualized(true);
-      });
+      await Promise.all(visitPromises);
+      animatePath(parents, source, dest);
+      setHasVisualized(true);
     }
   }
 
@@ -188,25 +191,21 @@ export default function App() {
     return i + 1;
   }
 
-  function resetGridOnClick() {
-    gridRef.current = initGrid(numRow, numCol);
-    setHasVisualized(false);
-    forceDeepRender();
+  function changeAlgoOptionOnChange(
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) {
+    setAlgoValue(event.target.value as GraphAlgoOptions);
+    resetGrid();
   }
-
-  function changeAlgoOnChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    setAlgoValue(event.target.value);
-  }
-  console.log("render App");    // TODO delete later
 
   return (
     <>
       <Navbar
         navbarStyle={{ $height: navbarHeight }}
         algoValue={algoValue}
-        changeAlgoOnChange={changeAlgoOnChange}
+        changeAlgoOnChange={changeAlgoOptionOnChange}
         visualizeOnClick={visualize}
-        resetGridOnClick={resetGridOnClick}
+        resetGridOnClick={resetGrid}
       />
       <Grid
         grid={gridRef.current}
@@ -215,39 +214,8 @@ export default function App() {
         handleMouseDown={changeEditMode}
         handleMouseUp={resetEditMode}
         handleMouseMove={editGrid}
-      // handleMouseClick={editGrid}
+        // handleMouseClick={editGrid}
       />
     </>
   );
-}
-
-
-function useWindowSize(): WindowSize {
-  // Initialize state with undefined width/height so server and client renders match
-  const [windowSize, setWindowSize] = useState<WindowSize>({
-    width: undefined,
-    height: undefined,
-  });
-
-  useEffect(() => {
-    // Handler to call on window resize
-    function handleResize() {
-      // Set window width/height to state
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    }
-
-    // Add event listener
-    window.addEventListener("resize", handleResize);
-
-    // Call handler right away so state gets updated with initial window size
-    handleResize();
-
-    // Remove event listener on cleanup
-    return () => window.removeEventListener("resize", handleResize);
-  }, []); // Empty array ensures that effect is only run on mount
-
-  return windowSize;
 }
