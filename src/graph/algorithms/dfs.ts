@@ -1,5 +1,5 @@
-import { Vertex, Coord, Visualizer } from '../types';
-import { getSourceAndDest } from '../grid';
+import { Vertex, Coord, Visualizer } from '../../types';
+import { getSourceAndDest } from '../../grid';
 
 
 export default function dfs(grid: Vertex[][]): Visualizer | null {

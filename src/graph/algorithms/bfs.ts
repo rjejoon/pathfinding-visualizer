@@ -1,7 +1,7 @@
 import Queue from 'queue-fifo';
 
-import { Vertex, Coord, Visualizer } from '../types';
-import { getSourceAndDest } from '../grid';
+import { Vertex, Coord, Visualizer } from '../../types';
+import { getSourceAndDest } from '../../grid';
 
 
 export default function bfs(grid: Vertex[][]): Visualizer | null {
