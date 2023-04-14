@@ -45,8 +45,7 @@ const Node = styled(BaseNode).attrs((props) => ({
   height: ${(props) => props.nodeDim.$height}px;
 
   border-top: 0.5px solid black;
-
-  /* transition: background-color 0.5s cubic-bezier(0,1.02,1,.98); */
+  transition: transform 0.1s ease-in-out;
 `;
 
 export default Node;

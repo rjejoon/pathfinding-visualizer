@@ -88,19 +88,25 @@ export class Vertex extends Coord {
     if (this._htmlElement === null) {
       return;
     }
-    let bgColor: string = 'none';
+    // let bgColor: string = 'none';
+    this._htmlElement.classList.remove('source', 'dest', 'wall', 'path', 'visited')
     if (this._isSource) {
-      bgColor = '#66ff66';
+      this._htmlElement.classList.add('source');
+      // bgColor = '#66ff66';
     } else if (this._isDest) {
-      bgColor = '#ff6666';
+      this._htmlElement.classList.add('dest');
+      // bgColor = '#ff6666';
     } else if (this._isWall) {
-      bgColor = '#163057';
+      this._htmlElement.classList.add('wall');
+      // bgColor = '#163057';
     } else if (this._isPath) {
-      bgColor = '#ffff99';
+      this._htmlElement.classList.add('path');
+      // bgColor = '#ffff99';
     } else if (this._isVisited) {
-      bgColor = '#99e6ff';
+      this._htmlElement.classList.add('visited');
+      // bgColor = '#99e6ff';
     }
 
-    this._htmlElement.style.background = bgColor;
+    // this._htmlElement.style.background = bgColor;
   }
 }
