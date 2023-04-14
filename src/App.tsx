@@ -76,6 +76,8 @@ export default function App() {
 
     if (visualizer === null) {
       console.error(`Error: ${algoValue} failed`);
+      setIsVisualizing(false);
+      setHasVisualized(false);
       return;
     }
 
@@ -102,28 +104,41 @@ export default function App() {
     if (!hasVisualized) {
       await Promise.all(visitPromises);
     }
-    animatePath(parents, source, dest);
+    await Promise.all(animatePath(parents, source, dest));
     setHasVisualized(true);
     setIsVisualizing(false);
   }
 
-  function animatePath(parents: Vertex[][], source: Vertex, v: Vertex): number {
-    if (v === undefined) {
-      return -1;
-    }
-    let i = 0;
-    if (!v.isEqual(source)) {
-      i = animatePath(parents, source, parents[v.row][v.col]);
+  function animatePath(parents: Vertex[][], source: Vertex, dest: Vertex) {
+    const parentPromises: Promise<number>[] = [];
+
+    function animatePathHelper(v: Vertex) {
+      if (v === undefined) {
+        return -1;
+      }
+      let i = 0;
+      if (!v.isEqual(source)) {
+        i = animatePathHelper(parents[v.row][v.col]);
+      }
+
+      if (hasVisualized) {
+        gridRef.current[v.row][v.col].isPath = true;
+        return i + 1;
+      }
+
+      parentPromises.push(
+        new Promise<number>((resolve, reject) => {
+          setTimeout(() => {
+            gridRef.current[v.row][v.col].isPath = true;
+            resolve(i);
+          }, 10 * i);
+        })
+      );
+      return i + 1;
     }
 
-    if (hasVisualized) {
-      gridRef.current[v.row][v.col].isPath = true;
-    } else {
-      setTimeout(() => {
-        gridRef.current[v.row][v.col].isPath = true;
-      }, 10 * i);
-    }
-    return i + 1;
+    animatePathHelper(dest);
+    return parentPromises;
   }
 
   function changeAlgoOptionOnChange(
