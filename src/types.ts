@@ -13,6 +13,11 @@ export type VisualizeStateReducerAction = {
   type: 'idle' | 'running' | 'finished'
 }
 
+export type VisualizationConfig = {
+  algo: GraphAlgoOptions;
+  animationSpeed: number;
+}
+
 export type GraphAlgoOptions = 'dfs' | 'bfs' | 'dijkstra' | 'a-star';
 export { Vertex, Coord };
 

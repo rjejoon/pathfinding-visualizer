@@ -51,3 +51,12 @@ export function getSourceAndDest(grid: Vertex[][]): [Vertex, Vertex] {
 
   return [source, dest];
 }
+
+export function resetWallAndVisited(grid: Vertex[][]) {
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[0].length; c++) {
+      grid[r][c].isVisited = false;
+      grid[r][c].isPath = false;
+    }
+  }
+}

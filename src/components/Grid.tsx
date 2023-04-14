@@ -111,22 +111,22 @@ export default function Grid({ grid, gridDim, nodeDim, visualize }: GridProps) {
         nodeDim={nodeDim}
         ref={(el) => (v.htmlElement = el)}
         handleMouseDown={() => {
-          console.log("mouse down");
+          // console.log("mouse down");
           changeEditMode(v);
         }}
         handleMouseUp={() => {
-          console.log("mouse up");
+          // console.log("mouse up");
           resetEditMode();
         }}
         handleMouseMove={() => {
-          console.log("mouse move");
+          // console.log("mouse move");
           editVertex(v);
           if (visualizeState === "finished") {
             visualize();
           }
         }}
         handleMouseClick={() => {
-          console.log("mouse click");
+          // console.log("mouse click");
           changeEditMode(v);
           console.log(editMode.current);
           editVertex(v);
