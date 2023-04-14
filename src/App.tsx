@@ -39,7 +39,11 @@ export default function App() {
   const [algoValue, setAlgoValue] = useState<GraphAlgoOptions>("bfs");
   const [, setNow] = useState(new Date()); // used to force deep re-rendering
   const [hasVisualized, setHasVisualized] = useState(false);
+  const [isVisualizing, setIsVisualizing] = useState(false);
 
+  /**
+   * Reset grid.
+   */
   const resetGrid = useCallback(() => {
     gridRef.current = initGrid(numRow, numCol);
     setHasVisualized(false);
@@ -90,42 +94,55 @@ export default function App() {
     }
 
     const v = gridRef.current[target.row][target.col];
-    if (
-      lastEditedVertex.current !== null &&
-      v.isEqual(lastEditedVertex.current)
-    ) {
+    if (lastEditedVertex.current && v.isEqual(lastEditedVertex.current)) {
       // prevent triggering editing within the same vertex
       return;
     }
 
-    const [oldSource, oldDest] = getSourceAndDest(gridRef.current);
-    if (editMode.current === EditMode.Wall) {
-      if (!v.isSource && !v.isDest) {
-        v.isWall = !v.isWall;
-      }
-    } else if (editMode.current === EditMode.Source) {
-      if (!v.isWall) {
-        gridRef.current[oldSource.row][oldSource.col].isSource = false;
+    const [currSource, currDest] = getSourceAndDest(gridRef.current);
+    switch (editMode.current) {
+      case EditMode.Source:
+        if (v.isWall || v.isDest) {
+          break;
+        }
+        gridRef.current[currSource.row][currSource.col].isSource = false;
         v.isSource = true;
-      }
-    } else if (editMode.current === EditMode.Dest) {
-      if (!v.isWall) {
-        gridRef.current[oldDest.row][oldDest.col].isDest = false;
+        break;
+      case EditMode.Dest:
+        if (v.isWall || v.isSource) {
+          break;
+        }
+        gridRef.current[currDest.row][currDest.col].isDest = false;
         v.isDest = true;
-      }
+        break;
+      case EditMode.Wall:
+        if (!v.isSource && !v.isDest) {
+          v.isWall = !v.isWall;
+        }
+        break;
+      default:
+        return;
     }
     lastEditedVertex.current = v;
-
     if (hasVisualized) {
       visualize();
     }
   }
 
+  /**
+   * Visualize the selected algorithm.
+   */
   async function visualize() {
     if (!(algoValue in algoVisualizers)) {
       console.error(`Error: Invalid algoValue: ${algoValue}`);
       return;
     }
+
+    if (isVisualizing) {
+      // prevent multiple visualizations
+      return;
+    }
+    setIsVisualizing(true);
 
     // reset visited and path nodes
     for (let r = 0; r < gridRef.current.length; r++) {
@@ -162,14 +179,12 @@ export default function App() {
       }
     }
 
-    if (hasVisualized) {
-      animatePath(parents, source, dest);
-      setHasVisualized(true);
-    } else {
+    if (!hasVisualized) {
       await Promise.all(visitPromises);
-      animatePath(parents, source, dest);
-      setHasVisualized(true);
     }
+    animatePath(parents, source, dest);
+    setHasVisualized(true);
+    setIsVisualizing(false);
   }
 
   function animatePath(parents: Vertex[][], source: Vertex, v: Vertex): number {
@@ -205,7 +220,13 @@ export default function App() {
         algoValue={algoValue}
         changeAlgoOnChange={changeAlgoOptionOnChange}
         visualizeOnClick={visualize}
-        resetGridOnClick={resetGrid}
+        resetGridOnClick={() => {
+          if (isVisualizing) {
+            // prevent resetting grid while visualizing
+            return;
+          }
+          resetGrid();
+        }}
       />
       <Grid
         grid={gridRef.current}
