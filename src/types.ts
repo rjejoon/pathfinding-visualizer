@@ -9,9 +9,6 @@ export interface Visualizer {
 }
 
 export type VisualizeState = 'idle' | 'running' | 'finished' 
-export type VisualizeStateReducerAction = {
-  type: 'idle' | 'running' | 'finished'
-}
 
 export type VisualizationConfig = {
   algo: GraphAlgoOptions;

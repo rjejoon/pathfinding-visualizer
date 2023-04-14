@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useReducer,
-} from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Navbar from "./components/Navbar";
 import Grid from "./components/Grid";
 
@@ -13,7 +7,6 @@ import {
   Vertex,
   VisualizationConfig,
   VisualizeState,
-  VisualizeStateReducerAction,
 } from "./types";
 import { initGrid, resetWallAndVisited } from "./grid";
 import algoVisualizers from "./graph/visualizer-map";
@@ -21,24 +14,6 @@ import useWindowSize from "./hooks/use-window-size";
 import { VisualizeStateContext } from "./context/VisualizeStateContext";
 
 const DESIRED_DIM = 25;
-
-function visualizeStateReducer(
-  state: VisualizeState,
-  action: VisualizeStateReducerAction
-) {
-  switch (action.type) {
-    case "running":
-      console.log(state, "changed to running");
-      return "running";
-    case "finished":
-      console.log(state, "changed to finished");
-      return "finished";
-    case "idle":
-      console.log(state, "changed to idle");
-      return "idle";
-  }
-  throw Error("Unknown action: " + action.type);
-}
 
 export default function App() {
   const windowSize = useWindowSize();
@@ -60,30 +35,23 @@ export default function App() {
   const [visualizationConfig, setVisualizationConfig] =
     useState<VisualizationConfig>({
       algo: "bfs",
-      animationSpeed: 2,
+      animationSpeed: 3,
     });
   const [, setNow] = useState(new Date()); // used to force deep re-rendering
-  const [visualizeState, dispatchVisualizeState] = useReducer(
-    visualizeStateReducer,
-    "idle"
-  );
+  const [visualizeState, setVisualizeState] = useState<VisualizeState>("idle");
+  const [startVisualize, setStartVisualize] = useState(false);
 
   const resetGrid = useCallback(() => {
     gridRef.current = initGrid(numRow, numCol);
-    dispatchVisualizeState({ type: "idle" });
+    setVisualizeState("idle");
     forceDeepRender();
   }, [numRow, numCol]);
 
   function resetVisualize() {
     resetWallAndVisited(gridRef.current);
-    dispatchVisualizeState({ type: "idle" });
+    setVisualizeState("idle");
     forceDeepRender();
   }
-
-  useEffect(() => {
-    // reset grid on resize
-    resetGrid();
-  }, [numRow, numCol, resetGrid]);
 
   /**
    * Force deep re-rendering.
@@ -92,10 +60,45 @@ export default function App() {
     setNow(new Date());
   }
 
+  const animatePath = useCallback(
+    (parents: Vertex[][], source: Vertex, dest: Vertex) => {
+      const parentPromises: Promise<number>[] = [];
+
+      function animatePathHelper(v: Vertex) {
+        if (v === undefined) {
+          return -1;
+        }
+        let i = 0;
+        if (!v.isEqual(source)) {
+          i = animatePathHelper(parents[v.row][v.col]);
+        }
+
+        if (visualizeState === "finished") {
+          gridRef.current[v.row][v.col].isPath = true;
+          return i + 1;
+        }
+
+        parentPromises.push(
+          new Promise<number>((resolve, reject) => {
+            setTimeout(() => {
+              gridRef.current[v.row][v.col].isPath = true;
+              resolve(i);
+            }, visualizationConfig.animationSpeed * 2 * i);
+          })
+        );
+        return i + 1;
+      }
+
+      animatePathHelper(dest);
+      return parentPromises;
+    },
+    [visualizationConfig.animationSpeed, visualizeState]
+  );
+
   /**
    * Visualize the selected algorithm.
    */
-  async function visualize() {
+  const visualize = useCallback(async () => {
     if (!(visualizationConfig.algo in algoVisualizers)) {
       console.error(`Error: Invalid algoValue: ${visualizationConfig.algo}`);
       return;
@@ -107,7 +110,7 @@ export default function App() {
     }
 
     if (visualizeState === "idle") {
-      dispatchVisualizeState({ type: "running" });
+      setVisualizeState("running");
     }
 
     // reset visited and path nodes
@@ -125,7 +128,7 @@ export default function App() {
     console.log(visualizeState);
     if (visualizer === null) {
       console.error(`Error: ${visualizationConfig.algo} failed`);
-      dispatchVisualizeState({ type: "finished" });
+      setVisualizeState("finished");
       return;
     }
 
@@ -151,40 +154,13 @@ export default function App() {
 
     await Promise.all(visitPromises);
     await Promise.all(animatePath(parents, source, dest));
-    dispatchVisualizeState({ type: "finished" });
-  }
-
-  function animatePath(parents: Vertex[][], source: Vertex, dest: Vertex) {
-    const parentPromises: Promise<number>[] = [];
-
-    function animatePathHelper(v: Vertex) {
-      if (v === undefined) {
-        return -1;
-      }
-      let i = 0;
-      if (!v.isEqual(source)) {
-        i = animatePathHelper(parents[v.row][v.col]);
-      }
-
-      if (visualizeState === "finished") {
-        gridRef.current[v.row][v.col].isPath = true;
-        return i + 1;
-      }
-
-      parentPromises.push(
-        new Promise<number>((resolve, reject) => {
-          setTimeout(() => {
-            gridRef.current[v.row][v.col].isPath = true;
-            resolve(i);
-          }, visualizationConfig.animationSpeed * 2 * i);
-        })
-      );
-      return i + 1;
-    }
-
-    animatePathHelper(dest);
-    return parentPromises;
-  }
+    setVisualizeState("finished");
+  }, [
+    animatePath,
+    visualizationConfig.algo,
+    visualizationConfig.animationSpeed,
+    visualizeState,
+  ]);
 
   function changeAlgoOptionOnChange(
     event: React.ChangeEvent<HTMLSelectElement>
@@ -201,12 +177,19 @@ export default function App() {
     resetVisualize();
   }
 
-  function visualizeOnClick() {
-    if (visualizeState === "finished") {
-      resetVisualize();
+  useEffect(() => {
+    // reset grid on resize
+    resetGrid();
+  }, [numRow, numCol, resetGrid]);
+
+  useEffect(() => {
+    // Visualize on startVisualize
+    // Need it in useEffect so that visualize gets the latest visualizeState
+    if (startVisualize) {
+      visualize();
+      setStartVisualize(false);
     }
-    visualize();
-  }
+  }, [startVisualize, visualize]);
 
   return (
     <VisualizeStateContext.Provider value={visualizeState}>
@@ -214,7 +197,12 @@ export default function App() {
         navbarStyle={{ $height: navbarHeight }}
         algoValue={visualizationConfig.algo}
         changeAlgoOnChange={changeAlgoOptionOnChange}
-        visualizeOnClick={visualizeOnClick}
+        visualizeOnClick={() => {
+          if (visualizeState === "finished") {
+            resetVisualize();
+          }
+          setStartVisualize(true);
+        }}
         resetGridOnClick={() => {
           if (visualizeState === "running") {
             // prevent resetting grid while visualizing
