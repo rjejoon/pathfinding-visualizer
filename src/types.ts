@@ -8,6 +8,11 @@ export interface Visualizer {
   dest: Vertex;
 }
 
+export type VisualizeState = 'idle' | 'running' | 'finished' 
+export type VisualizeStateReducerAction = {
+  type: 'idle' | 'running' | 'finished'
+}
+
 export type GraphAlgoOptions = 'dfs' | 'bfs' | 'dijkstra' | 'a-star';
 export { Vertex, Coord };
 

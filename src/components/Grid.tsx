@@ -2,8 +2,9 @@ import styled from "styled-components";
 
 import Node, { NodeDim } from "./Node";
 import { Vertex } from "../types";
-import { useRef } from "react";
+import { useContext, useRef } from "react";
 import { getSourceAndDest } from "../grid";
+import { VisualizeStateContext } from "../context/VisualizeStateContext";
 
 interface RowProps {
   readonly $height: number;
@@ -27,19 +28,13 @@ type GridProps = {
   grid: Vertex[][];
   gridDim: GridDim;
   nodeDim: NodeDim;
-  hasVisualized: boolean;
   visualize: () => void;
 };
 
-export default function Grid({
-  grid,
-  gridDim,
-  nodeDim,
-  hasVisualized,
-  visualize,
-}: GridProps) {
+export default function Grid({ grid, gridDim, nodeDim, visualize }: GridProps) {
   const editMode = useRef(EditMode.Null);
   const lastEditedVertex = useRef<Vertex | null>(null);
+  const visualizeState = useContext(VisualizeStateContext);
 
   /**
    * Change edit mode depending on which type of vertex the mouse is pointing.
@@ -126,7 +121,7 @@ export default function Grid({
         handleMouseMove={() => {
           console.log("mouse move");
           editVertex(v);
-          if (hasVisualized) {
+          if (visualizeState === "finished") {
             visualize();
           }
         }}
@@ -135,7 +130,7 @@ export default function Grid({
           changeEditMode(v);
           console.log(editMode.current);
           editVertex(v);
-          if (hasVisualized) {
+          if (visualizeState === "finished") {
             visualize();
           }
           resetEditMode();
