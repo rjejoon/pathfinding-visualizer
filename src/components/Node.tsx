@@ -12,6 +12,7 @@ type NodeProps = {
   handleMouseDown: () => void;
   handleMouseUp: () => void;
   handleMouseMove: () => void;
+  handleMouseClick: () => void;
 };
 
 type NodeRef = HTMLDivElement;
@@ -25,6 +26,7 @@ const BaseNode = forwardRef<NodeRef, NodeProps>((props, ref) => {
       onMouseDown={props.handleMouseDown}
       onMouseUp={props.handleMouseUp}
       onMouseMove={props.handleMouseMove}
+      onClick={props.handleMouseClick}
     ></div>
   );
 });

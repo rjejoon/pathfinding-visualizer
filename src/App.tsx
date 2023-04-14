@@ -3,19 +3,11 @@ import Navbar from "./components/Navbar";
 import Grid from "./components/Grid";
 
 import { GraphAlgoOptions, Vertex } from "./types";
-import { initGrid, getSourceAndDest } from "./grid";
+import { initGrid } from "./grid";
 import algoVisualizers from "./graph/visualizer-map";
 import useWindowSize from "./hooks/use-window-size";
 
 const DESIRED_DIM = 25;
-
-enum EditMode {
-  Null,
-  Source,
-  Dest,
-  Wall,
-  Weight,
-}
 
 export default function App() {
   const windowSize = useWindowSize();
@@ -34,16 +26,11 @@ export default function App() {
   h += (gridHeight - numRow * h) / numRow - 0.01;
 
   const gridRef = useRef(initGrid(numRow, numCol));
-  const editMode = useRef(EditMode.Null);
-  const lastEditedVertex = useRef<Vertex | null>(null);
   const [algoValue, setAlgoValue] = useState<GraphAlgoOptions>("bfs");
   const [, setNow] = useState(new Date()); // used to force deep re-rendering
   const [hasVisualized, setHasVisualized] = useState(false);
   const [isVisualizing, setIsVisualizing] = useState(false);
 
-  /**
-   * Reset grid.
-   */
   const resetGrid = useCallback(() => {
     gridRef.current = initGrid(numRow, numCol);
     setHasVisualized(false);
@@ -56,77 +43,10 @@ export default function App() {
   }, [numRow, numCol, resetGrid]);
 
   /**
-   * Change edit mode depending on which type of vertex the mouse is pointing.
-   * If mouse is down on source vertex, set EditMode to Source.
-   * If mouse is down on destination vertex, set EditMode to Dest.
-   * Otherwise, set EditMode to Wall.
-   *
-   * @param target - Vertex object at the pointer
-   */
-  function changeEditMode(target: Vertex) {
-    if (target.isSource) {
-      editMode.current = EditMode.Source;
-    } else if (target.isDest) {
-      editMode.current = EditMode.Dest;
-    } else {
-      editMode.current = EditMode.Wall;
-    }
-  }
-
-  function resetEditMode() {
-    editMode.current = EditMode.Null;
-  }
-
-  /**
    * Force deep re-rendering.
    */
   function forceDeepRender() {
     setNow(new Date());
-  }
-
-  /**
-   *
-   * @param target - Vertex object at the pointer
-   */
-  function editGrid(target: Vertex) {
-    if (editMode.current === EditMode.Null) {
-      return;
-    }
-
-    const v = gridRef.current[target.row][target.col];
-    if (lastEditedVertex.current && v.isEqual(lastEditedVertex.current)) {
-      // prevent triggering editing within the same vertex
-      return;
-    }
-
-    const [currSource, currDest] = getSourceAndDest(gridRef.current);
-    switch (editMode.current) {
-      case EditMode.Source:
-        if (v.isWall || v.isDest) {
-          break;
-        }
-        gridRef.current[currSource.row][currSource.col].isSource = false;
-        v.isSource = true;
-        break;
-      case EditMode.Dest:
-        if (v.isWall || v.isSource) {
-          break;
-        }
-        gridRef.current[currDest.row][currDest.col].isDest = false;
-        v.isDest = true;
-        break;
-      case EditMode.Wall:
-        if (!v.isSource && !v.isDest) {
-          v.isWall = !v.isWall;
-        }
-        break;
-      default:
-        return;
-    }
-    lastEditedVertex.current = v;
-    if (hasVisualized) {
-      visualize();
-    }
   }
 
   /**
@@ -232,10 +152,8 @@ export default function App() {
         grid={gridRef.current}
         gridDim={{ $width: gridWidth, $height: gridHeight }}
         nodeDim={{ $width: w, $height: h }}
-        handleMouseDown={changeEditMode}
-        handleMouseUp={resetEditMode}
-        handleMouseMove={editGrid}
-        // handleMouseClick={editGrid}
+        hasVisualized={hasVisualized}
+        visualize={visualize}
       />
     </>
   );
