@@ -5,18 +5,33 @@ import { createGlobalStyle, keyframes } from "styled-components";
 
 const wallAnimation = keyframes`
   0% {
-    border: none;
-    scale: 1
+    scale: 1;
   }
 
   50% {
-    border: none;
-    scale: 1.3
+    scale: 1.3;
   }
 
   100% {
-    border: none;
-    scale: 1
+    scale: 1;
+  }
+`;
+
+const visitedAnimation = keyframes`
+  0% {
+    scale: 0;
+    border-radius: 50%;
+  }
+
+  50% {
+    scale: 0.5;
+    border-radius: 50%;
+    border: 0.5px solid black;
+  }
+
+  100% {
+    scale: 1;
+    border-radius: 0;
   }
 `;
 
@@ -37,18 +52,14 @@ const GlobalStyle = createGlobalStyle`
 
   .source {
     background-color: #66ff66;
-    animation: ${wallAnimation} 0.2s ease-in-out;
   }
 
   .dest {
     background-color: #ff6666;
-    animation: ${wallAnimation} 0.2s ease-in-out;
   }
 
   .wall {
     background-color: #163057;
-    // scale background node if the node is a wall
-    animation: ${wallAnimation} 0.2s ease-in-out;
   }
 
   .path {
@@ -57,6 +68,26 @@ const GlobalStyle = createGlobalStyle`
 
   .visited {
     background-color: #99e6ff;
+  }
+
+  .source.animate {
+    animation: ${wallAnimation} 0.2s ease-in-out;
+  }
+
+  .dest.animate {
+    animation: ${wallAnimation} 0.2s ease-in-out;
+  }
+
+  .wall.animate {
+    animation: ${visitedAnimation} 0.2s linear;
+  }
+
+  .path.animate {
+    animation: ${wallAnimation} 0.2s ease-in-out;
+  }
+
+  .visited.animate {
+    animation: ${visitedAnimation} 0.7s linear;
   }
 `;
 

@@ -60,3 +60,11 @@ export function resetWallAndVisited(grid: Vertex[][]) {
     }
   }
 }
+
+export function setGridAnimation(grid: Vertex[][], isAnimationEnabled: boolean) {
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[0].length; c++) {
+      grid[r][c].isAnimationEnabled = isAnimationEnabled;
+    }
+  }
+}

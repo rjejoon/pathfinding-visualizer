@@ -8,6 +8,7 @@ export class Vertex extends Coord {
   private _isPath: boolean;
   private _weight: number;
   private _htmlElement: HTMLDivElement | null;
+  private _isAnimationEnabled: boolean;
   
   constructor(
     row: number, 
@@ -18,7 +19,8 @@ export class Vertex extends Coord {
     isWall: boolean = false,
     isPath: boolean = false,
     isVisited: boolean = false,
-    htmlElement: HTMLDivElement | null = null
+    htmlElement: HTMLDivElement | null = null,
+    isAnimationEnabled: boolean = true,
   ) {
     super(row, col);
     this._isSource = isSource; 
@@ -28,6 +30,7 @@ export class Vertex extends Coord {
     this._isPath = isPath;
     this._weight = weight;
     this._htmlElement = htmlElement;
+    this._isAnimationEnabled = isAnimationEnabled;
   }
 
   set isSource(val: boolean) {
@@ -71,6 +74,21 @@ export class Vertex extends Coord {
   }
 
   get htmlElement() { return this._htmlElement; }
+
+  get isAnimationEnabled() { return this._isAnimationEnabled; }
+
+  set isAnimationEnabled(val: boolean) { 
+    this._isAnimationEnabled = val; 
+    if (this._htmlElement === null) {
+      return;
+    }
+
+    if (val) {
+      this._htmlElement.classList.add('animate');
+    } else {
+      this._htmlElement.classList.remove('animate');
+    }
+  }
 
   getCoord(): Coord {
     return new Coord(this.row, this.col);

@@ -13,6 +13,7 @@ export type VisualizeState = 'idle' | 'running' | 'finished'
 export type VisualizationConfig = {
   algo: GraphAlgoOptions;
   animationSpeed: number;
+  isAnimationEnabled: boolean;
 }
 
 export type GraphAlgoOptions = 'dfs' | 'bfs' | 'dijkstra' | 'a-star';

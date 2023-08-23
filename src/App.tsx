@@ -8,7 +8,7 @@ import {
   VisualizationConfig,
   VisualizeState,
 } from "./types";
-import { initGrid, resetWallAndVisited } from "./grid";
+import { initGrid, resetWallAndVisited, setGridAnimation } from "./grid";
 import algoVisualizers from "./graph/visualizer-map";
 import useWindowSize from "./hooks/use-window-size";
 import { VisualizeStateContext } from "./context/VisualizeStateContext";
@@ -35,7 +35,8 @@ export default function App() {
   const [visualizationConfig, setVisualizationConfig] =
     useState<VisualizationConfig>({
       algo: "bfs",
-      animationSpeed: 3,
+      animationSpeed: 5,
+      isAnimationEnabled: true,
     });
   const [, setNow] = useState(new Date()); // used to force deep re-rendering
   const [visualizeState, setVisualizeState] = useState<VisualizeState>("idle");
@@ -83,7 +84,7 @@ export default function App() {
             setTimeout(() => {
               gridRef.current[v.row][v.col].isPath = true;
               resolve(i);
-            }, visualizationConfig.animationSpeed * 2 * i);
+            }, visualizationConfig.animationSpeed * 5 * i);
           })
         );
         return i + 1;
@@ -176,6 +177,18 @@ export default function App() {
     }));
     resetVisualize();
   }
+
+  useEffect(() => {
+    setGridAnimation(gridRef.current, visualizationConfig.isAnimationEnabled);
+  });
+
+  useEffect(() => {
+    // turn off animation when visualization is finished
+    // to avoid animation when resizing or updating grid
+    if (visualizeState === "finished") {
+      setGridAnimation(gridRef.current, false);
+    }
+  }, [visualizeState]);
 
   useEffect(() => {
     // reset grid on resize
