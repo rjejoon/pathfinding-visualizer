@@ -27,6 +27,33 @@ export function initGrid(numRow: number, numCol: number): Vertex[][] {
 }
 
 /**
+ * Changes all the wall verticies to normal verticies in place.
+ * 
+ * @param grid - 2d array of Vertex
+ */
+export function resetWalls(grid: Vertex[][]) {
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[0].length; c++) {
+      grid[r][c].isWall = false;
+    }
+  }
+}
+
+/**
+ * Changes all the visited and path verticies to normal verticies in place.
+ * 
+ * @param grid - 2d array of Vertex
+ */
+export function resetVisitedAndPath(grid: Vertex[][]) {
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[0].length; c++) {
+      grid[r][c].isVisited = false;
+      grid[r][c].isPath = false;
+    }
+  }
+}
+
+/**
  * Returns source and dest Verticies from the grid.
  * @param grid - 2d array of Vertex
  * @returns a tuple of source and dest vertices
@@ -52,15 +79,12 @@ export function getSourceAndDest(grid: Vertex[][]): [Vertex, Vertex] {
   return [source, dest];
 }
 
-export function resetWallAndVisited(grid: Vertex[][]) {
-  for (let r = 0; r < grid.length; r++) {
-    for (let c = 0; c < grid[0].length; c++) {
-      grid[r][c].isVisited = false;
-      grid[r][c].isPath = false;
-    }
-  }
-}
-
+/**
+ * Enables or disables animation for all verticies in the grid.
+ * 
+ * @param grid - 2d array of Vertex
+ * @param isAnimationEnabled - true to enable animation, false to disable
+ */
 export function setGridAnimation(grid: Vertex[][], isAnimationEnabled: boolean) {
   for (let r = 0; r < grid.length; r++) {
     for (let c = 0; c < grid[0].length; c++) {

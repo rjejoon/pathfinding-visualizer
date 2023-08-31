@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Navbar from "./components/Navbar";
 import Grid from "./components/Grid";
 
@@ -8,19 +8,26 @@ import {
   VisualizationConfig,
   VisualizeState,
 } from "./types";
-import { initGrid, resetWallAndVisited, setGridAnimation } from "./grid";
+import {
+  initGrid,
+  resetVisitedAndPath,
+  setGridAnimation,
+  resetWalls,
+} from "./grid";
 import algoVisualizers from "./graph/visualizer-map";
 import useWindowSize from "./hooks/use-window-size";
 import { VisualizeStateContext } from "./context/VisualizeStateContext";
+import Legend from "./components/Legend";
 
 const DESIRED_DIM = 25;
 
 export default function App() {
   const windowSize = useWindowSize();
-  const navbarHeight = 70;
+  const navbarHeight = 60;
+  const legendHeight = 100;
 
   const gridWidth = windowSize.width || 0;
-  const gridHeight = (windowSize.height || 0) - navbarHeight;
+  const gridHeight = (windowSize.height || 0) - navbarHeight - legendHeight;
 
   let w = DESIRED_DIM;
   let h = DESIRED_DIM;
@@ -35,9 +42,11 @@ export default function App() {
   const [visualizationConfig, setVisualizationConfig] =
     useState<VisualizationConfig>({
       algo: "bfs",
-      animationSpeed: 5,
+      animationSpeed: 1, // range: [1, 10]
       isAnimationEnabled: true,
     });
+  const trueAnimationSpeed =
+    (-15 / 9) * visualizationConfig.animationSpeed + 195 / 9;
   const [, setNow] = useState(new Date()); // used to force deep re-rendering
   const [visualizeState, setVisualizeState] = useState<VisualizeState>("idle");
   const [startVisualize, setStartVisualize] = useState(false);
@@ -49,7 +58,7 @@ export default function App() {
   }, [numRow, numCol]);
 
   function resetVisualize() {
-    resetWallAndVisited(gridRef.current);
+    resetVisitedAndPath(gridRef.current);
     setVisualizeState("idle");
     forceDeepRender();
   }
@@ -84,7 +93,7 @@ export default function App() {
             setTimeout(() => {
               gridRef.current[v.row][v.col].isPath = true;
               resolve(i);
-            }, visualizationConfig.animationSpeed * 5 * i);
+            }, trueAnimationSpeed * 5 * i);
           })
         );
         return i + 1;
@@ -93,7 +102,7 @@ export default function App() {
       animatePathHelper(dest);
       return parentPromises;
     },
-    [visualizationConfig.animationSpeed, visualizeState]
+    [trueAnimationSpeed, visualizeState]
   );
 
   /**
@@ -147,7 +156,7 @@ export default function App() {
             setTimeout(() => {
               gridRef.current[targetV.row][targetV.col].isVisited = true;
               resolve(i);
-            }, visualizationConfig.animationSpeed * i);
+            }, trueAnimationSpeed * i);
           })
         );
       }
@@ -159,23 +168,37 @@ export default function App() {
   }, [
     animatePath,
     visualizationConfig.algo,
-    visualizationConfig.animationSpeed,
+    trueAnimationSpeed,
     visualizeState,
   ]);
 
-  function changeAlgoOptionOnChange(
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) {
+  const changeAlgoOnClick = (value: string) => {
     if (visualizeState === "running") {
       // prevent changing algo while visualizing
       return;
     }
-
     setVisualizationConfig((prev) => ({
       ...prev,
-      algo: event.target.value as GraphAlgoOptions,
+      algo: value as GraphAlgoOptions,
     }));
     resetVisualize();
+  };
+
+  function onChangeAnimationSpeed(value: number | [number, number]) {
+    if (typeof value === "number") {
+      setVisualizationConfig((prev) => ({
+        ...prev,
+        animationSpeed: value,
+      }));
+    }
+  }
+
+  function onChangeAnimationEnabled(value: boolean) {
+    resetVisualize();
+    setVisualizationConfig((prev) => ({
+      ...prev,
+      isAnimationEnabled: value,
+    }));
   }
 
   useEffect(() => {
@@ -208,8 +231,10 @@ export default function App() {
     <VisualizeStateContext.Provider value={visualizeState}>
       <Navbar
         navbarStyle={{ $height: navbarHeight }}
-        algoValue={visualizationConfig.algo}
-        changeAlgoOnChange={changeAlgoOptionOnChange}
+        visualizeState={visualizeState}
+        changeAlgoOnClick={changeAlgoOnClick}
+        onChangeAnimationSpeed={onChangeAnimationSpeed}
+        onChangeAnimationEnabled={onChangeAnimationEnabled}
         visualizeOnClick={() => {
           if (visualizeState === "finished") {
             resetVisualize();
@@ -217,13 +242,18 @@ export default function App() {
           setStartVisualize(true);
         }}
         resetGridOnClick={() => {
-          if (visualizeState === "running") {
-            // prevent resetting grid while visualizing
-            return;
-          }
           resetGrid();
         }}
+        resetWallsOnClick={() => {
+          resetWalls(gridRef.current);
+          setVisualizeState("idle");
+          forceDeepRender();
+        }}
+        resetVisualizationOnClick={() => {
+          resetVisualize();
+        }}
       />
+      <Legend legendStyle={{ $height: legendHeight }} />
       <Grid
         grid={gridRef.current}
         gridDim={{ $width: gridWidth, $height: gridHeight }}
