@@ -42,7 +42,7 @@ export default function App() {
   const [visualizationConfig, setVisualizationConfig] =
     useState<VisualizationConfig>({
       algo: "bfs",
-      animationSpeed: 1, // range: [1, 10]
+      animationSpeed: 10, // range: [1, 10]
       isAnimationEnabled: true,
     });
   const trueAnimationSpeed =
@@ -123,13 +123,7 @@ export default function App() {
       setVisualizeState("running");
     }
 
-    // reset visited and path nodes
-    for (let r = 0; r < gridRef.current.length; r++) {
-      for (let c = 0; c < gridRef.current[0].length; c++) {
-        gridRef.current[r][c].isVisited = false;
-        gridRef.current[r][c].isPath = false;
-      }
-    }
+    resetVisitedAndPath(gridRef.current);
 
     const visualizer = algoVisualizers[visualizationConfig.algo](
       gridRef.current
@@ -186,6 +180,7 @@ export default function App() {
 
   function onChangeAnimationSpeed(value: number | [number, number]) {
     if (typeof value === "number") {
+      resetVisualize();
       setVisualizationConfig((prev) => ({
         ...prev,
         animationSpeed: value,
