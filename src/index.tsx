@@ -1,9 +1,16 @@
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { Normalize } from "styled-normalize";
-import { createGlobalStyle, keyframes } from "styled-components";
+import {
+  DefaultTheme,
+  ThemeProps,
+  ThemeProvider,
+  createGlobalStyle,
+  keyframes,
+} from "styled-components";
 import destPin from "./assets/dest-pin.svg";
 import rightArrow from "./assets/right-arrow.svg";
+import { theme } from "./theme";
 
 const wallAnimation = keyframes`
   0% {
@@ -19,12 +26,12 @@ const wallAnimation = keyframes`
   }
 `;
 
-const visitedAnimation = keyframes`
+const getVisitedAnimation = (props: ThemeProps<DefaultTheme>) => keyframes`
   0% {
     scale: 0;
     border-radius: 50%;
     border: 0;
-    background-color: #00008B
+    background-color: ${props.theme.darkVisited};
   }
 
   50% {
@@ -37,7 +44,7 @@ const visitedAnimation = keyframes`
     scale: 1;
     border-radius: 0;
     border: 0;
-    background-color: #99e6ff; /* Original color */
+    background-color: ${props.theme.visited};
   }
 `;
 
@@ -84,21 +91,17 @@ const GlobalStyle = createGlobalStyle`
   }
 
   .wall {
-    background-color: #163057;
+    background-color: ${(props) => props.theme.wall};
   }
 
   .path {
-    background-color: #ffff99;
+    background-color: ${(props) => props.theme.path};
     border: 0;
   }
 
   .visited {
-    background-color: #99e6ff;
+    background-color: ${(props) => props.theme.visited};
     border: 0.5px solid #cacaca;
-  }
-
-  .exploring {
-    background-color: #ffff99;
   }
 
   .source.animate {
@@ -118,7 +121,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   .visited.animate {
-    animation: ${visitedAnimation} 0.35s linear;
+    animation: ${getVisitedAnimation} 0.35s linear;
   }
 `;
 
@@ -128,8 +131,10 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <>
-    <Normalize />
-    <GlobalStyle />
-    <App />
+    <ThemeProvider theme={theme}>
+      <Normalize />
+      <GlobalStyle />
+      <App />
+    </ThemeProvider>
   </>
 );
