@@ -16,6 +16,6 @@ export type VisualizationConfig = {
   isAnimationEnabled: boolean;
 }
 
-export type GraphAlgoOptions = 'dfs' | 'bfs' | 'dijkstra' | 'a-star';
+export type GraphAlgoOptions = 'dfs' | 'bfs' | 'dijkstra' | 'astar';
 export { Vertex, Coord };
 

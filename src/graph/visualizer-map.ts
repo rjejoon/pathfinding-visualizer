@@ -1,6 +1,7 @@
 import bfs from './algorithms/bfs';
 import dfs from './algorithms/dfs';
 import dijkstra from './algorithms/dijkstra';
+import astar from './algorithms/astar';
 import { GraphAlgoOptions, Vertex, Visualizer } from '../types';
 
 type GraphAlgoToVisualizerMap = {
@@ -11,7 +12,7 @@ const algoVisualizers: GraphAlgoToVisualizerMap = {
   "bfs": bfs,
   "dfs": dfs,
   'dijkstra': dijkstra,
-  'a-star': () => null,
+  'astar': astar,
 }
 
 export default algoVisualizers;
