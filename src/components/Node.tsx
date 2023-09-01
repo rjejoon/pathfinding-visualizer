@@ -35,16 +35,16 @@ const Node = styled(BaseNode).attrs((props) => ({
   className: props.className,
 }))`
   &:nth-child(1) {
-    border-left: 0.5px solid black;
+    border-left: 0.5px solid #2596be;
   }
 
-  border-right: 0.5px solid black;
+  border-right: 0.5px solid #2596be;
 
   display: inline-block;
   width: ${(props) => props.nodeDim.$width}px;
   height: ${(props) => props.nodeDim.$height}px;
 
-  border-top: 0.5px solid black;
+  border-top: 0.5px solid #2596be;
   transition: transform 0.1s ease-in-out;
 `;
 
