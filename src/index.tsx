@@ -28,14 +28,12 @@ const wallAnimation = keyframes`
 
 const getVisitedAnimation = (props: ThemeProps<DefaultTheme>) => keyframes`
   0% {
-    scale: 0;
-    border-radius: 50%;
+    scale: 0.5;
     border: 0;
     background-color: ${props.theme.darkVisited};
   }
 
   50% {
-    scale: 0.5;
     border-radius: 50%;
     border: 0;
   }

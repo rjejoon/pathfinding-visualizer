@@ -48,6 +48,7 @@ export default function App() {
     });
   const trueAnimationSpeed =
     (-15 / 9) * visualizationConfig.animationSpeed + 195 / 9;
+
   const [, setNow] = useState(new Date()); // used to force deep re-rendering
   const [visualizeState, setVisualizeState] = useState<VisualizeState>("idle");
   const [startVisualize, setStartVisualize] = useState(false);
@@ -130,7 +131,6 @@ export default function App() {
       gridRef.current
     );
 
-    console.log(visualizeState);
     if (visualizer === null) {
       console.error(`Error: ${visualizationConfig.algo} failed`);
       setVisualizeState("finished");
