@@ -131,6 +131,8 @@ export default function App() {
       gridRef.current
     );
 
+    console.log(visualizer);
+
     if (visualizer === null) {
       console.error(`Error: ${visualizationConfig.algo} failed`);
       setVisualizeState("finished");

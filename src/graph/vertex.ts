@@ -13,7 +13,7 @@ export class Vertex extends Coord {
   constructor(
     row: number, 
     col: number, 
-    weight: number = 0,
+    weight: number = 1,
     isSource: boolean = false, 
     isDest: boolean = false, 
     isWall: boolean = false,
@@ -72,6 +72,10 @@ export class Vertex extends Coord {
     this._htmlElement = val;
     this.updateElementClassList();
   }
+
+  get weight() { return this._weight; }
+
+  set weight(val: number) { this._weight = val; }
 
   get htmlElement() { return this._htmlElement; }
 
