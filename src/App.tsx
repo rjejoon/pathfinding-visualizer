@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Navbar from "./components/Navbar";
 import Grid from "./components/Grid";
+import * as Consts from "./constants";
 
 import {
   GraphAlgoOptions,
@@ -41,9 +42,9 @@ export default function App() {
   const gridRef = useRef(initGrid(numRow, numCol));
   const [visualizationConfig, setVisualizationConfig] =
     useState<VisualizationConfig>({
-      algo: "bfs",
-      animationSpeed: 10, // range: [1, 10]
-      isAnimationEnabled: true,
+      algo: Consts.DEFAULT_ALGO_VALUE,
+      animationSpeed: Consts.DEFAULT_ANIMATION_SPEED, // range: [1, 10]
+      isAnimationEnabled: Consts.DEFAULT_IS_ANIMATION_ENABLED,
     });
   const trueAnimationSpeed =
     (-15 / 9) * visualizationConfig.animationSpeed + 195 / 9;

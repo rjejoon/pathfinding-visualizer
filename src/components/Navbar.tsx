@@ -11,6 +11,7 @@ import styled from "styled-components";
 import { IoSettingsOutline } from "react-icons/io5";
 import { useState } from "react";
 import { VisualizeState } from "../types";
+import * as Consts from "../constants";
 
 interface NavbarStyle {
   $height: number;
@@ -45,7 +46,7 @@ export default function Navbar({
         <>
           <span>Animation Speed</span>
           <Slider
-            defaultValue={10}
+            defaultValue={Consts.DEFAULT_ANIMATION_SPEED}
             min={1}
             max={10}
             onChange={onChangeAnimationSpeed}
@@ -61,7 +62,10 @@ export default function Navbar({
       label: (
         <Space>
           <span>Enable Animation</span>
-          <Switch defaultChecked onChange={onChangeAnimationEnabled} />
+          <Switch
+            defaultChecked={Consts.DEFAULT_IS_ANIMATION_ENABLED}
+            onChange={onChangeAnimationEnabled}
+          />
         </Space>
       ),
       key: "animation-switch",
@@ -81,7 +85,7 @@ export default function Navbar({
       <LogoButton>Pathfinding Visualizer</LogoButton>
       <Space>
         <Select
-          defaultValue="bfs"
+          defaultValue={Consts.DEFAULT_ALGO_VALUE}
           style={{ width: 180 }}
           bordered={false}
           onChange={changeAlgoOnClick}
