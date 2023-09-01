@@ -35,42 +35,42 @@ export class Vertex extends Coord {
 
   set isSource(val: boolean) {
     this._isSource = val;
-    this.updateElementBg();
+    this.updateElementClassList();
   }
 
   get isSource() { return this._isSource; }
 
   set isDest(val: boolean) {
     this._isDest = val;
-    this.updateElementBg();
+    this.updateElementClassList();
   }
 
   get isDest() { return this._isDest; }
 
   set isWall(val: boolean) {
     this._isWall = val;
-    this.updateElementBg();
+    this.updateElementClassList();
   }
 
   get isWall() { return this._isWall; }
 
   set isPath(val: boolean) {
     this._isPath = val;
-    this.updateElementBg();
+    this.updateElementClassList();
   }
 
   get isPath() { return this._isPath; }
 
   set isVisited(val: boolean) {
     this._isVisited = val;
-    this.updateElementBg();
+    this.updateElementClassList();
   }
 
   get isVisited() { return this._isVisited; }
 
   set htmlElement(val: HTMLDivElement | null) {
     this._htmlElement = val;
-    this.updateElementBg();
+    this.updateElementClassList();
   }
 
   get htmlElement() { return this._htmlElement; }
@@ -98,33 +98,32 @@ export class Vertex extends Coord {
     return new Vertex(this.row, this.col, this._weight, this._isSource, this._isDest, this._isWall, this._isPath, this._isVisited, this._htmlElement);
   }
 
+  /**
+   * Valid means the vertex can be visited.
+   * @returns true if the vertex is valid, false otherwise.
+   */
   isValid() {
     return !this._isWall;
   }
 
-  updateElementBg() {
+  /**
+   * Updates the class list of the html element to reflect the current state of the vertex.
+   */
+  updateElementClassList() {
     if (this._htmlElement === null) {
       return;
     }
-    // let bgColor: string = 'none';
     this._htmlElement.classList.remove('source', 'dest', 'wall', 'path', 'visited')
     if (this._isSource) {
       this._htmlElement.classList.add('source');
-      // bgColor = '#66ff66';
     } else if (this._isDest) {
       this._htmlElement.classList.add('dest');
-      // bgColor = '#ff6666';
     } else if (this._isWall) {
       this._htmlElement.classList.add('wall');
-      // bgColor = '#163057';
     } else if (this._isPath) {
       this._htmlElement.classList.add('path');
-      // bgColor = '#ffff99';
     } else if (this._isVisited) {
       this._htmlElement.classList.add('visited');
-      // bgColor = '#99e6ff';
-    }
-
-    // this._htmlElement.style.background = bgColor;
+    } 
   }
 }
