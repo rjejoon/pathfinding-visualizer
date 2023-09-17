@@ -1,8 +1,8 @@
-import { Vertex, Coord, Visualizer } from '../../types';
+import { Vertex, Coord, PathfindingVisualizer } from '../../types';
 import { getSourceAndDest } from '../../grid';
 
 
-export default function dfs(grid: Vertex[][]): Visualizer | null {
+export default function dfs(grid: Vertex[][]): PathfindingVisualizer | null {
   const visited: boolean[][] = new Array(grid.length).fill(false).map(() => new Array(grid[0].length).fill(false));
   const parents: Vertex[][] = new Array(grid.length).fill(undefined).map(() => new Array(grid[0].length).fill(undefined));
 

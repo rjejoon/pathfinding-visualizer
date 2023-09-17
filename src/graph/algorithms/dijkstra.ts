@@ -1,4 +1,4 @@
-import { Vertex, Coord, Visualizer } from '../../types';
+import { Vertex, Coord, PathfindingVisualizer } from '../../types';
 import { getSourceAndDest } from '../../grid';
 import { IGetCompareValue, MinPriorityQueue } from '@datastructures-js/priority-queue';
 
@@ -7,7 +7,7 @@ interface IVertexDist {
   dist: number;
 }
 
-export default function dijkstra(grid: Vertex[][]): Visualizer | null {
+export default function dijkstra(grid: Vertex[][]): PathfindingVisualizer | null {
   const [source, dest] = getSourceAndDest(grid);
 
   const parents: Vertex[][] = new Array(grid.length).fill(undefined).map(() => new Array(grid[0].length).fill(undefined));

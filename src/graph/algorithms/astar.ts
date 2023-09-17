@@ -1,4 +1,4 @@
-import { Vertex, Coord, Visualizer } from '../../types';
+import { Vertex, Coord, PathfindingVisualizer } from '../../types';
 import { getSourceAndDest } from '../../grid';
 import { IGetCompareValue, MinPriorityQueue } from '@datastructures-js/priority-queue';
 
@@ -17,7 +17,7 @@ function heuristic(u: Vertex, v: Vertex) {
   return Math.abs(u.row - v.row) + Math.abs(u.col - v.col);
 }
 
-export default function astar(grid: Vertex[][]): Visualizer | null {
+export default function astar(grid: Vertex[][]): PathfindingVisualizer | null {
 
   const [source, dest] = getSourceAndDest(grid);
   const parents: Vertex[][] = new Array(grid.length).fill(undefined).map(() => new Array(grid[0].length).fill(undefined));

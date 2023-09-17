@@ -4,7 +4,9 @@ import Grid from "./components/Grid";
 import * as Consts from "./constants";
 
 import {
-  GraphAlgoOptions,
+  MazeAndPatternOptions,
+  MazeAndPatternVisualizer,
+  PathfindingAlgoOptions,
   Vertex,
   VisualizationConfig,
   VisualizeState,
@@ -15,10 +17,14 @@ import {
   setGridAnimation,
   resetWalls,
 } from "./grid";
-import algoVisualizers from "./graph/visualizer-map";
+import {
+  mazeAndPatternVisualizers,
+  pathfindingVisualizers,
+} from "./graph/visualizer-maps";
 import useWindowSize from "./hooks/use-window-size";
 import { VisualizeStateContext } from "./context/VisualizeStateContext";
 import Legend from "./components/Legend";
+import { MenuProps } from "antd";
 
 const DESIRED_DIM = 25;
 
@@ -52,6 +58,8 @@ export default function App() {
   const [, setNow] = useState(new Date()); // used to force deep re-rendering
   const [visualizeState, setVisualizeState] = useState<VisualizeState>("idle");
   const [startVisualize, setStartVisualize] = useState(false);
+  const [mazeAndPatternVisualizer, setMazeAndPatternVisualizer] =
+    useState<MazeAndPatternVisualizer | null>(null);
 
   const resetGrid = useCallback(() => {
     gridRef.current = initGrid(numRow, numCol);
@@ -71,6 +79,41 @@ export default function App() {
   function forceDeepRender() {
     setNow(new Date());
   }
+
+  const animateMazeAndPatternVisualizer = useCallback(
+    async (visualizer: MazeAndPatternVisualizer) => {
+      const { visitedVerticesInOrder } = visualizer;
+
+      if (visualizeState === "running") {
+        // prevent multiple visualizations
+        return;
+      }
+
+      setVisualizeState("running");
+
+      const visitPromises: Promise<number>[] = [];
+
+      for (let i = 0; i < visitedVerticesInOrder.length; i++) {
+        const targetV = visitedVerticesInOrder[i];
+        if (visualizeState === "finished") {
+          gridRef.current[targetV.row][targetV.col].isWall = true;
+        } else {
+          visitPromises.push(
+            new Promise<number>((resolve, reject) => {
+              setTimeout(() => {
+                gridRef.current[targetV.row][targetV.col].isWall = true;
+                resolve(i);
+              }, 5 * i);
+            })
+          );
+        }
+      }
+
+      await Promise.all(visitPromises);
+      setVisualizeState("idle");
+    },
+    [visualizeState]
+  );
 
   const animatePath = useCallback(
     (parents: Vertex[][], source: Vertex, dest: Vertex) => {
@@ -111,7 +154,7 @@ export default function App() {
    * Visualize the selected algorithm.
    */
   const visualize = useCallback(async () => {
-    if (!(visualizationConfig.algo in algoVisualizers)) {
+    if (!(visualizationConfig.algo in pathfindingVisualizers)) {
       console.error(`Error: Invalid algoValue: ${visualizationConfig.algo}`);
       return;
     }
@@ -127,7 +170,7 @@ export default function App() {
 
     resetVisitedAndPath(gridRef.current);
 
-    const visualizer = algoVisualizers[visualizationConfig.algo](
+    const visualizer = pathfindingVisualizers[visualizationConfig.algo](
       gridRef.current
     );
 
@@ -174,7 +217,7 @@ export default function App() {
     }
     setVisualizationConfig((prev) => ({
       ...prev,
-      algo: value as GraphAlgoOptions,
+      algo: value as PathfindingAlgoOptions,
     }));
     resetVisualize();
   };
@@ -197,6 +240,18 @@ export default function App() {
     }));
   }
 
+  const onClickMazeAndPatternOption: MenuProps["onClick"] = ({ key }) => {
+    const visualizer = mazeAndPatternVisualizers[key as MazeAndPatternOptions](
+      gridRef.current
+    );
+    if (visualizer === null) {
+      console.error(`Error: ${key} failed`);
+      return;
+    }
+
+    setMazeAndPatternVisualizer(visualizer);
+  };
+
   useEffect(() => {
     setGridAnimation(gridRef.current, visualizationConfig.isAnimationEnabled);
   });
@@ -204,7 +259,9 @@ export default function App() {
   useEffect(() => {
     // turn off animation when visualization is finished
     // to avoid animation when resizing or updating grid
-    if (visualizeState === "finished") {
+    if (visualizeState === "idle") {
+      setGridAnimation(gridRef.current, true);
+    } else if (visualizeState === "finished") {
       setGridAnimation(gridRef.current, false);
     }
   }, [visualizeState]);
@@ -223,12 +280,20 @@ export default function App() {
     }
   }, [startVisualize, visualize]);
 
+  useEffect(() => {
+    if (mazeAndPatternVisualizer !== null) {
+      animateMazeAndPatternVisualizer(mazeAndPatternVisualizer);
+      setMazeAndPatternVisualizer(null);
+    }
+  }, [mazeAndPatternVisualizer, animateMazeAndPatternVisualizer]);
+
   return (
     <VisualizeStateContext.Provider value={visualizeState}>
       <Navbar
         navbarStyle={{ $height: navbarHeight }}
         visualizeState={visualizeState}
         changeAlgoOnClick={changeAlgoOnClick}
+        onClickMazeAndPatternOption={onClickMazeAndPatternOption}
         onChangeAnimationSpeed={onChangeAnimationSpeed}
         onChangeAnimationEnabled={onChangeAnimationEnabled}
         visualizeOnClick={() => {

@@ -12,6 +12,7 @@ import { IoSettingsOutline } from "react-icons/io5";
 import { useState } from "react";
 import { VisualizeState } from "../types";
 import * as Consts from "../constants";
+import { DownOutlined } from "@ant-design/icons";
 
 interface NavbarStyle {
   $height: number;
@@ -21,6 +22,7 @@ interface NavbarProps {
   navbarStyle: NavbarStyle;
   visualizeState: VisualizeState;
   changeAlgoOnClick: (value: string) => void;
+  onClickMazeAndPatternOption: MenuProps["onClick"];
   onChangeAnimationSpeed: (value: number | [number, number]) => void;
   onChangeAnimationEnabled: (value: boolean) => void;
   visualizeOnClick: () => void;
@@ -29,10 +31,38 @@ interface NavbarProps {
   resetVisualizationOnClick: () => void;
 }
 
+const mazeAndPatternGenerationOptions: MenuProps["items"] = [
+  {
+    key: "maze-generation",
+    type: "group",
+    label: "Maze Generation",
+    children: [
+      { label: "Recursive Maze", key: "recursive-maze" },
+      { label: "Recursive Division", key: "recursive-division" },
+      { label: "Random Walls", key: "random-walls" },
+    ],
+  },
+  {
+    key: "pattern-generation",
+    type: "group",
+    label: "Pattern Generation",
+    children: [
+      { label: "Random Pattern", key: "random-pattern" },
+      { label: "Vertical Skew", key: "vertical-skew" },
+      { label: "Horizontal Skew", key: "horizontal-skew" },
+      { label: "Concentric Circles", key: "concentric-circles" },
+      { label: "Vertical Stripes", key: "vertical-stripes" },
+      { label: "Horizontal Stripes", key: "horizontal-stripes" },
+      { label: "Checkerboard", key: "checkerboard" },
+    ],
+  },
+];
+
 export default function Navbar({
   navbarStyle,
   visualizeState,
   changeAlgoOnClick,
+  onClickMazeAndPatternOption,
   onChangeAnimationSpeed,
   onChangeAnimationEnabled,
   visualizeOnClick,
@@ -40,7 +70,7 @@ export default function Navbar({
   resetWallsOnClick,
   resetVisualizationOnClick,
 }: NavbarProps) {
-  const items: MenuProps["items"] = [
+  const visualizationConfigItems: MenuProps["items"] = [
     {
       label: (
         <>
@@ -82,11 +112,23 @@ export default function Navbar({
 
   return (
     <StyledNav $height={navbarStyle.$height}>
-      <LogoButton>Pathfinding Visualizer</LogoButton>
       <Space>
+        <LogoButton>Pathfinding Visualizer</LogoButton>
+        <Dropdown
+          menu={{
+            items: mazeAndPatternGenerationOptions,
+            onClick: onClickMazeAndPatternOption,
+          }}
+          trigger={["click"]}
+          disabled={disabled}
+        >
+          <Button type="text">
+            Mazes & Patterns <DownOutlined />
+          </Button>
+        </Dropdown>
         <Select
           defaultValue={Consts.DEFAULT_ALGO_VALUE}
-          style={{ width: 180 }}
+          style={{ width: "180px" }}
           bordered={false}
           onChange={changeAlgoOnClick}
           disabled={disabled}
@@ -125,7 +167,7 @@ export default function Navbar({
         </Button>
       </Space>
       <Dropdown
-        menu={{ items }}
+        menu={{ items: visualizationConfigItems }}
         open={open}
         onOpenChange={handleOpenChange}
         trigger={["click"]}
@@ -144,7 +186,8 @@ const StyledNav = styled.nav<NavbarStyle>`
 
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  padding: 0 32px;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03),
     0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02);
 `;
@@ -167,6 +210,7 @@ const ClearButton = styled.button`
   border: none;
   padding: 0;
   cursor: pointer;
+  font-family: inherit;
 
   display: flex;
   align-items: center;
