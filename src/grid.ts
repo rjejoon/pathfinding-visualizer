@@ -1,24 +1,30 @@
-import { Vertex, Coord } from './types';
+import { Vertex, Coord } from "./types";
 
 /**
  * Creates numRow x numCol grid initialized with Vertex objects.
  * Source and destination vertices are initialized here.
- * 
+ *
  * @param numRow - number of rows in grid
  * @param numCol - number of cols in grid
  * @returns grid
  */
 export function initGrid(numRow: number, numCol: number): Vertex[][] {
-  const source: Coord = new Coord(Math.floor(numRow / 2), Math.floor(numCol * 0.20));
-  const dest: Coord = new Coord(Math.floor(numRow / 2), Math.floor(numCol * 0.80));
+  const source: Coord = new Coord(
+    Math.floor(numRow / 2),
+    Math.floor(numCol * 0.3)
+  );
+  const dest: Coord = new Coord(
+    Math.floor(numRow / 2),
+    Math.floor(numCol * 0.7)
+  );
 
   const grid: Vertex[][] = [];
   for (let r = 0; r < numRow; r++) {
     const row: Vertex[] = [];
     for (let c = 0; c < numCol; c++) {
       const v = new Vertex(r, c);
-      v.isSource = (r === source.row && c === source.col);
-      v.isDest = (r === dest.row && c === dest.col);
+      v.isSource = r === source.row && c === source.col;
+      v.isDest = r === dest.row && c === dest.col;
       row.push(v);
     }
     grid.push(row);
@@ -28,27 +34,27 @@ export function initGrid(numRow: number, numCol: number): Vertex[][] {
 
 /**
  * Changes all the wall verticies to normal verticies in place.
- * 
+ *
  * @param grid - 2d array of Vertex
  */
 export function resetWalls(grid: Vertex[][]) {
   for (let r = 0; r < grid.length; r++) {
     for (let c = 0; c < grid[0].length; c++) {
-      grid[r][c].isWall = false;
+      if (grid[r][c].isWall) grid[r][c].isWall = false;
     }
   }
 }
 
 /**
  * Changes all the visited and path verticies to normal verticies in place.
- * 
+ *
  * @param grid - 2d array of Vertex
  */
 export function resetVisitedAndPath(grid: Vertex[][]) {
   for (let r = 0; r < grid.length; r++) {
     for (let c = 0; c < grid[0].length; c++) {
-      grid[r][c].isVisited = false;
-      grid[r][c].isPath = false;
+      if (grid[r][c].isVisited) grid[r][c].isVisited = false;
+      if (grid[r][c].isPath) grid[r][c].isPath = false;
     }
   }
 }
@@ -81,11 +87,14 @@ export function getSourceAndDest(grid: Vertex[][]): [Vertex, Vertex] {
 
 /**
  * Enables or disables animation for all verticies in the grid.
- * 
+ *
  * @param grid - 2d array of Vertex
  * @param isAnimationEnabled - true to enable animation, false to disable
  */
-export function setGridAnimation(grid: Vertex[][], isAnimationEnabled: boolean) {
+export function setGridAnimation(
+  grid: Vertex[][],
+  isAnimationEnabled: boolean
+) {
   for (let r = 0; r < grid.length; r++) {
     for (let c = 0; c < grid[0].length; c++) {
       grid[r][c].isAnimationEnabled = isAnimationEnabled;
