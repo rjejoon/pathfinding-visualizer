@@ -15,14 +15,14 @@ export default function recursiveMaze(
   for (let c = 0; c < grid[0].length; c++) {
     visitedVerticesInOrder.push(grid[0][c]);
     walls[0][c] = true;
-    visitedVerticesInOrder.push(grid[grid.length - 1][grid[0].length-1-c]);
-    walls[grid.length - 1][grid[0].length-1-c] = true;
+    visitedVerticesInOrder.push(grid[grid.length - 1][grid[0].length - 1 - c]);
+    walls[grid.length - 1][grid[0].length - 1 - c] = true;
   }
   for (let r = 0; r < grid.length; r++) {
     visitedVerticesInOrder.push(grid[r][grid[0].length - 1]);
     walls[r][grid[0].length - 1] = true;
-    visitedVerticesInOrder.push(grid[grid.length-1-r][0]);
-    walls[grid.length-1-r][0] = true;
+    visitedVerticesInOrder.push(grid[grid.length - 1 - r][0]);
+    walls[grid.length - 1 - r][0] = true;
   }
 
   const [source, dest] = getSourceAndDest(grid);
@@ -56,27 +56,30 @@ export default function recursiveMaze(
     const possible_wys: number[] = [];
     if (isHorizontal) {
       wx = x;
-      for (let wy = y+1; wy < y + height; wy += 2) {
-        const isWallPointAdjacentToWall = walls[wy + 1][wx] || walls[wy - 1][wx];
-        const isWallPointAdjacentToPassage = !walls[wy][wx - 1] || !walls[wy][wx + width];
+      for (let wy = y + 1; wy < y + height; wy += 2) {
+        const isWallPointAdjacentToWall =
+          walls[wy + 1][wx] || walls[wy - 1][wx];
+        const isWallPointAdjacentToPassage =
+          !walls[wy][wx - 1] || !walls[wy][wx + width];
         if (isWallPointAdjacentToWall || isWallPointAdjacentToPassage) continue;
         possible_wys.push(wy);
       }
       if (possible_wys.length === 0) {
-        return
+        return;
       }
       wy = possible_wys[Math.floor(Math.random() * possible_wys.length)];
-
     } else {
       wy = y;
-      for (let wx = x+1; wx < x + width; wx += 2) {
-        const isWallPointAdjacentToWall = walls[wy][wx - 1] || walls[wy][wx + 1];
-        const isWallPointAdjacentToPassage = !walls[wy - 1][wx] || !walls[wy + height][wx];
+      for (let wx = x + 1; wx < x + width; wx += 2) {
+        const isWallPointAdjacentToWall =
+          walls[wy][wx - 1] || walls[wy][wx + 1];
+        const isWallPointAdjacentToPassage =
+          !walls[wy - 1][wx] || !walls[wy + height][wx];
         if (isWallPointAdjacentToWall || isWallPointAdjacentToPassage) continue;
         possible_wxs.push(wx);
       }
       if (possible_wxs.length === 0) {
-        return
+        return;
       }
       wx = possible_wxs[Math.floor(Math.random() * possible_wxs.length)];
     }
@@ -84,26 +87,16 @@ export default function recursiveMaze(
     // passage point
     let px: number;
     let py: number;
-    const possible_pxs = _.random(_.range(wx, wx+width-1, 2);
-    const possible_pys: number[] = [];
 
     if (isHorizontal) {
       py = wy;
-      for (let px=wx; px<wx+width; px+=2){
-        possible_pxs.push(px)
-      }
-      px = possible_pxs[Math.floor(Math.random() * possible_pxs.length)];
+      const possible_pxs = _.range(wx, wx + width, 2);
+      px = possible_pxs[_.random(0, possible_pxs.length - 1)];
     } else {
       px = wx;
-      for (let py=wy; py<wy+height; py+=2){
-        possible_pys.push(py)
-      }
-      py = possible_pys[Math.floor(Math.random() * possible_pys.length)];
+      const possible_pys = _.range(wy, wy + height, 2);
+      py = possible_pys[_.random(0, possible_pys.length - 1)];
     }
-    // const px = wx + (isHorizontal ? Math.floor(Math.random() * width) : 0);
-    // const py = wy + (isHorizontal ? 0 : Math.floor(Math.random() * height));
-    // const px = wx + (isHorizontal ? Math.floor(Math.random() * ((width- 1) - 1) + 1) : 0);
-    // const py = wy + (isHorizontal ? 0 : Math.floor(Math.random() * (height-1) -1) +1);
 
     // direction
     const dx = isHorizontal ? 1 : 0;
@@ -112,9 +105,13 @@ export default function recursiveMaze(
     const wallLength = isHorizontal ? width : height;
 
     for (let i = 0; i < wallLength; i++) {
-      if (!((wx === px && wy === py) || 
-           (wx === source.col && wy === source.row) || 
-           (wx === dest.col && wy === dest.row))) {
+      if (
+        !(
+          (wx === px && wy === py) ||
+          (wx === source.col && wy === source.row) ||
+          (wx === dest.col && wy === dest.row)
+        )
+      ) {
         visitedVerticesInOrder.push(grid[wy][wx]);
         walls[wy][wx] = true;
       }
@@ -160,4 +157,3 @@ function choose_orientation(width: number, height: number) {
   }
   return Math.floor(Math.random() * 2);
 }
-
