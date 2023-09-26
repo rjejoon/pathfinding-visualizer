@@ -37,7 +37,6 @@ const mazeAndPatternGenerationOptions: MenuProps["items"] = [
     type: "group",
     label: "Maze Generation",
     children: [
-      { label: "Recursive Maze", key: "recursive-maze" },
       { label: "Recursive Division", key: "recursive-division" },
       { label: "Random Walls", key: "random-walls" },
     ],
@@ -47,13 +46,11 @@ const mazeAndPatternGenerationOptions: MenuProps["items"] = [
     type: "group",
     label: "Pattern Generation",
     children: [
-      { label: "Random Pattern", key: "random-pattern" },
-      { label: "Vertical Skew", key: "vertical-skew" },
-      { label: "Horizontal Skew", key: "horizontal-skew" },
+      { label: "Simple Stair", key: "simple-stair" },
+      { label: "Diagonal Line", key: "diagonal-line" },
       { label: "Concentric Circles", key: "concentric-circles" },
       { label: "Vertical Stripes", key: "vertical-stripes" },
       { label: "Horizontal Stripes", key: "horizontal-stripes" },
-      { label: "Checkerboard", key: "checkerboard" },
     ],
   },
 ];

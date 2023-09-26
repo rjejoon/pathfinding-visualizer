@@ -2,7 +2,12 @@ import { getSourceAndDest } from "../../../grid";
 import { MazeAndPatternVisualizer, Vertex } from "../../../types";
 import _ from "lodash";
 
-export default function recursiveMaze(
+/**
+ * Recursive division maze generation algorithm
+ * @param grid Vertex[][]
+ * @returns MazeAndPatternVisualizer
+ */
+export default function recursiveDivision(
   grid: Vertex[][]
 ): MazeAndPatternVisualizer {
   const walls: boolean[][] = new Array(grid.length)
@@ -11,19 +16,7 @@ export default function recursiveMaze(
 
   const visitedVerticesInOrder: Vertex[] = [];
 
-  // set up outer walls
-  for (let c = 0; c < grid[0].length; c++) {
-    visitedVerticesInOrder.push(grid[0][c]);
-    walls[0][c] = true;
-    visitedVerticesInOrder.push(grid[grid.length - 1][grid[0].length - 1 - c]);
-    walls[grid.length - 1][grid[0].length - 1 - c] = true;
-  }
-  for (let r = 0; r < grid.length; r++) {
-    visitedVerticesInOrder.push(grid[r][grid[0].length - 1]);
-    walls[r][grid[0].length - 1] = true;
-    visitedVerticesInOrder.push(grid[grid.length - 1 - r][0]);
-    walls[grid.length - 1 - r][0] = true;
-  }
+  setupOuterWalls(grid, visitedVerticesInOrder, walls);
 
   const [source, dest] = getSourceAndDest(grid);
 
@@ -156,4 +149,29 @@ function choose_orientation(width: number, height: number) {
     return 1;
   }
   return Math.floor(Math.random() * 2);
+}
+
+/**
+ * Set up the outer walls of the grid
+ * @param grid Vertex[][]
+ * @param visitedVerticesInOrder Vertex[]
+ * @param walls boolean[][]
+ */
+function setupOuterWalls(
+  grid: Vertex[][],
+  visitedVerticesInOrder: Vertex[],
+  walls: boolean[][]
+) {
+  for (let c = 0; c < grid[0].length; c++) {
+    visitedVerticesInOrder.push(grid[0][c]);
+    walls[0][c] = true;
+    visitedVerticesInOrder.push(grid[grid.length - 1][grid[0].length - 1 - c]);
+    walls[grid.length - 1][grid[0].length - 1 - c] = true;
+  }
+  for (let r = 0; r < grid.length; r++) {
+    visitedVerticesInOrder.push(grid[r][grid[0].length - 1]);
+    walls[r][grid[0].length - 1] = true;
+    visitedVerticesInOrder.push(grid[grid.length - 1 - r][0]);
+    walls[grid.length - 1 - r][0] = true;
+  }
 }

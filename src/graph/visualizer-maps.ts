@@ -8,7 +8,12 @@ import {
   PathfindingVisualizer,
   Vertex,
 } from "../types";
-import recursiveMaze from "./algorithms/mazes/recursive-maze";
+import recursiveDivision from "./algorithms/mazes/recursive-division";
+import simpleStair from "./algorithms/patterns/simple-stair";
+import randomWalls from "./algorithms/mazes/random-walls";
+import concentricCircles from "./algorithms/patterns/concentric-circles";
+import diagonalLine from "./algorithms/patterns/diagonal-line";
+import verticalStripes from "./algorithms/patterns/vertical-stripes";
 
 type PathfindingVisualizerMap = {
   [key in PathfindingAlgoOptions]: (
@@ -29,5 +34,10 @@ export const pathfindingVisualizers: PathfindingVisualizerMap = {
 };
 
 export const mazeAndPatternVisualizers: MazeAndPatternVisualizerMap = {
-  "recursive-maze": recursiveMaze,
+  "recursive-division": recursiveDivision,
+  "simple-stair": simpleStair,
+  "random-walls": randomWalls,
+  "concentric-circles": concentricCircles,
+  "diagonal-line": diagonalLine,
+  "vertical-stripes": verticalStripes,
 };

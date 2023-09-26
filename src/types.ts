@@ -22,6 +22,12 @@ export type VisualizationConfig = {
 };
 
 export type PathfindingAlgoOptions = "dfs" | "bfs" | "dijkstra" | "astar";
-export type MazeAndPatternOptions = "recursive-maze";
+export type MazeAndPatternOptions =
+  | "recursive-division"
+  | "simple-stair"
+  | "random-walls"
+  | "concentric-circles"
+  | "diagonal-line"
+  | "vertical-stripes";
 
 export { Vertex, Coord };
