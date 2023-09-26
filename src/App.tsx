@@ -224,7 +224,6 @@ export default function App() {
 
   function onChangeAnimationSpeed(value: number | [number, number]) {
     if (typeof value === "number") {
-      resetVisualize();
       setVisualizationConfig((prev) => ({
         ...prev,
         animationSpeed: value,
@@ -233,7 +232,6 @@ export default function App() {
   }
 
   function onChangeAnimationEnabled(value: boolean) {
-    resetVisualize();
     setVisualizationConfig((prev) => ({
       ...prev,
       isAnimationEnabled: value,
@@ -241,6 +239,7 @@ export default function App() {
   }
 
   const onClickMazeAndPatternOption: MenuProps["onClick"] = ({ key }) => {
+    resetGrid();
     const visualizer = mazeAndPatternVisualizers[key as MazeAndPatternOptions](
       gridRef.current
     );
