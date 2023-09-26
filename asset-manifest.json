@@ -1,0 +1,12 @@
+{
+  "files": {
+    "main.js": "/pathfinding-visualizer/static/js/main.9022870f.js",
+    "index.html": "/pathfinding-visualizer/index.html",
+    "static/media/dest-pin.svg": "/pathfinding-visualizer/static/media/dest-pin.61d38d73ed5ff99fcf4c4590357aef83.svg",
+    "static/media/right-arrow.svg": "/pathfinding-visualizer/static/media/right-arrow.e20304c772943e0a0c8af3d53e69b19e.svg",
+    "main.9022870f.js.map": "/pathfinding-visualizer/static/js/main.9022870f.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.9022870f.js"
+  ]
+}
