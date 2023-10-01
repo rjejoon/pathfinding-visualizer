@@ -50,7 +50,6 @@ const mazeAndPatternGenerationOptions: MenuProps["items"] = [
       { label: "Diagonal Line", key: "diagonal-line" },
       { label: "Concentric Circles", key: "concentric-circles" },
       { label: "Vertical Stripes", key: "vertical-stripes" },
-      { label: "Horizontal Stripes", key: "horizontal-stripes" },
     ],
   },
 ];
@@ -200,6 +199,8 @@ const LogoButton = styled.button`
   font-size: 18px;
   font-weight: 700;
   letter-spacing: 0.5px;
+
+  width: 200px;
 `;
 
 const ClearButton = styled.button`
