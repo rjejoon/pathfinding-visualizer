@@ -1,12 +1,15 @@
 {
   "files": {
-    "main.js": "/pathfinding-visualizer/static/js/main.9022870f.js",
+    "main.js": "/pathfinding-visualizer/static/js/main.902a98ad.js",
     "index.html": "/pathfinding-visualizer/index.html",
     "static/media/dest-pin.svg": "/pathfinding-visualizer/static/media/dest-pin.61d38d73ed5ff99fcf4c4590357aef83.svg",
-    "static/media/right-arrow.svg": "/pathfinding-visualizer/static/media/right-arrow.e20304c772943e0a0c8af3d53e69b19e.svg",
-    "main.9022870f.js.map": "/pathfinding-visualizer/static/js/main.9022870f.js.map"
+    "static/media/right-arrow.svg": "/pathfinding-visualizer/static/media/right-arrow.ab238ba381afc364cac43211d6f84c2b.svg",
+    "static/media/down-arrow.svg": "/pathfinding-visualizer/static/media/down-arrow.c9818036d60c0f257780854757340966.svg",
+    "static/media/left-arrow.svg": "/pathfinding-visualizer/static/media/left-arrow.f88dbddf9b60d438dc1a31d1f3bb1148.svg",
+    "static/media/up-arrow.svg": "/pathfinding-visualizer/static/media/up-arrow.ec838a0ea6015381385ffad235943079.svg",
+    "main.902a98ad.js.map": "/pathfinding-visualizer/static/js/main.902a98ad.js.map"
   },
   "entrypoints": [
-    "static/js/main.9022870f.js"
+    "static/js/main.902a98ad.js"
   ]
 }
