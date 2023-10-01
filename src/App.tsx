@@ -120,12 +120,16 @@ export default function App() {
       const parentPromises: Promise<number>[] = [];
 
       function animatePathHelper(v: Vertex) {
+        
         if (v === undefined) {
           return -1;
         }
         let i = 0;
+        let prevVertex: Vertex | undefined;
+
         if (!v.isEqual(source)) {
           i = animatePathHelper(parents[v.row][v.col]);
+          prevVertex = parents[v.row][v.col];
         }
 
         if (visualizeState === "finished") {
@@ -137,8 +141,22 @@ export default function App() {
           new Promise<number>((resolve, reject) => {
             setTimeout(() => {
               gridRef.current[v.row][v.col].isPath = true;
+              // Set direction based on previous vertex
+              if (prevVertex) {
+                if (v.row > prevVertex.row) {
+                  gridRef.current[v.row][v.col].dir = "down";
+                } else if (v.row < prevVertex.row) {
+                  gridRef.current[v.row][v.col].dir = "up";
+                } else if (v.col > prevVertex.col) {
+                  gridRef.current[v.row][v.col].dir = "right";
+                } else {
+                  gridRef.current[v.row][v.col].dir = "left";
+                }
+              } else {
+                gridRef.current[v.row][v.col].dir = "right";
+              }
               resolve(i);
-            }, trueAnimationSpeed * 5 * i);
+            }, 50 * i);
           })
         );
         return i + 1;
@@ -147,7 +165,7 @@ export default function App() {
       animatePathHelper(dest);
       return parentPromises;
     },
-    [trueAnimationSpeed, visualizeState]
+    [visualizeState]
   );
 
   /**
@@ -200,9 +218,18 @@ export default function App() {
       }
     }
 
+    if (visualizeState === "finished") {
+      animatePath(parents, source, dest);
+      return;
+    }
+
     await Promise.all(visitPromises);
-    await Promise.all(animatePath(parents, source, dest));
-    setVisualizeState("finished");
+    Promise.all(animatePath(parents, source, dest)).then(() => {
+      setTimeout(() => {
+        setVisualizeState("finished");
+      }, Consts.PATH_ANIMATION_SPEED_SECONDS * 1000);
+    });
+
   }, [
     animatePath,
     visualizationConfig.algo,

@@ -9,6 +9,7 @@ export class Vertex extends Coord {
   private _weight: number;
   private _htmlElement: HTMLDivElement | null;
   private _isAnimationEnabled: boolean;
+  private _dir: "up" | "down" | "left" | "right";
   
   constructor(
     row: number, 
@@ -21,6 +22,7 @@ export class Vertex extends Coord {
     isVisited: boolean = false,
     htmlElement: HTMLDivElement | null = null,
     isAnimationEnabled: boolean = true,
+    dir: "up" | "down" | "left" | "right" = "right", 
   ) {
     super(row, col);
     this._isSource = isSource; 
@@ -31,6 +33,7 @@ export class Vertex extends Coord {
     this._weight = weight;
     this._htmlElement = htmlElement;
     this._isAnimationEnabled = isAnimationEnabled;
+    this._dir = dir;
   }
 
   set isSource(val: boolean) {
@@ -94,12 +97,31 @@ export class Vertex extends Coord {
     }
   }
 
+  get dir() { return this._dir; }
+
+  set dir(val: "up" | "down" | "left" | "right") {
+    this._dir = val;
+    this.updateElementClassList();
+  }
+
   getCoord(): Coord {
     return new Coord(this.row, this.col);
   }
 
   copy() {
-    return new Vertex(this.row, this.col, this._weight, this._isSource, this._isDest, this._isWall, this._isPath, this._isVisited, this._htmlElement);
+    return new Vertex(
+      this.row, 
+      this.col, 
+      this._weight, 
+      this._isSource, 
+      this._isDest, 
+      this._isWall, 
+      this._isPath, 
+      this._isVisited, 
+      this._htmlElement, 
+      this._isAnimationEnabled, 
+      this._dir
+    );
   }
 
   /**
@@ -117,7 +139,15 @@ export class Vertex extends Coord {
     if (this._htmlElement === null) {
       return;
     }
-    this._htmlElement.classList.remove('source', 'dest', 'wall', 'path', 'visited')
+    this._htmlElement.classList.remove(
+      'source', 
+      'dest', 
+      'wall', 
+      'visited',
+      'path-right', 
+      'path-left',
+      'path-up',
+      'path-down');
     if (this._isSource) {
       this._htmlElement.classList.add('source');
     } else if (this._isDest) {
@@ -125,7 +155,7 @@ export class Vertex extends Coord {
     } else if (this._isWall) {
       this._htmlElement.classList.add('wall');
     } else if (this._isPath) {
-      this._htmlElement.classList.add('path');
+      this._htmlElement.classList.add(`path-${this._dir}`);
     } else if (this._isVisited) {
       this._htmlElement.classList.add('visited');
     } 

@@ -10,7 +10,11 @@ import {
 } from "styled-components";
 import destPin from "./assets/dest-pin.svg";
 import rightArrow from "./assets/right-arrow.svg";
+import leftArrow from "./assets/left-arrow.svg";
+import upArrow from "./assets/up-arrow.svg";
+import downArrow from "./assets/down-arrow.svg";
 import { theme } from "./theme";
+import { PATH_ANIMATION_SPEED_SECONDS } from "./constants";
 
 const wallAnimation = keyframes`
   0% {
@@ -23,6 +27,29 @@ const wallAnimation = keyframes`
 
   100% {
     scale: 1;
+  }
+`;
+
+const getPathAnimation = (dir: "right" | "left" | "up" | "down" ) => keyframes`
+  0% {
+    background-image: url(${dir==="right" ? rightArrow : dir==="left" ? leftArrow : dir==="up" ? upArrow : downArrow});
+    background-repeat: no-repeat;
+    background-size: contain;
+    scale: 0.7;
+  }
+
+  20% {
+    scale: 0.3;
+    background-image: none;
+  }
+
+  30% {
+    border-radius: 50%;
+  }
+
+  100% {
+    scale: 1;
+    border-radius: 0;
   }
 `;
 
@@ -92,7 +119,22 @@ const GlobalStyle = createGlobalStyle`
     background-color: ${(props) => props.theme.wall};
   }
 
-  .path {
+  .path-right {
+    background-color: ${(props) => props.theme.path};
+    border: 0;
+  }
+
+  .path-left {
+    background-color: ${(props) => props.theme.path};
+    border: 0;
+  }
+
+  .path-up {
+    background-color: ${(props) => props.theme.path};
+    border: 0;
+  }
+
+  .path-down {
     background-color: ${(props) => props.theme.path};
     border: 0;
   }
@@ -114,12 +156,24 @@ const GlobalStyle = createGlobalStyle`
     animation: ${wallAnimation} 0.2s linear;
   }
 
-  .path.animate {
-    animation: ${wallAnimation} 0.2s ease-in-out;
+  .path-right.animate {
+    animation: ${getPathAnimation("right")} ${PATH_ANIMATION_SPEED_SECONDS}s ease-in-out;
+  }
+
+  .path-left.animate {
+    animation: ${getPathAnimation("left")} ${PATH_ANIMATION_SPEED_SECONDS}s ease-in-out;
+  }
+
+  .path-down.animate {
+    animation: ${getPathAnimation("down")} ${PATH_ANIMATION_SPEED_SECONDS}s ease-in-out;
+  }
+
+  .path-up.animate {
+    animation: ${getPathAnimation("up")} ${PATH_ANIMATION_SPEED_SECONDS}s ease-in-out;
   }
 
   .visited.animate {
-    animation: ${getVisitedAnimation} 0.35s linear;
+    animation: ${getVisitedAnimation} 0.2s linear;
   }
 `;
 
